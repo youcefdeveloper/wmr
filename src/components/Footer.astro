@@ -1,0 +1,29 @@
+---
+import FooterCopyright from './react/FooterCopyright'
+import LangToggle from './react/LangToggle'
+import MobileApp from './react/MobileApp'
+import AppStore from '../assets/icons/AppStore'
+import GooglePlay from '../assets/icons/GooglePlay'
+
+const currentYear = new Date().getFullYear()
+
+import appStore from '@assets/img/app-store.png.webp'
+import playStore from '@assets/img/play-store.png.webp'
+import ThemeToggle from '@components/react/ThemeToggle.tsx'
+---
+
+<footer>
+  <div class="d-flex justify-content-center align-items-center gap-1">
+    <ThemeToggle client:idle />
+    <FooterCopyright client:idle currentYear={currentYear} />
+  </div>
+  <div class="text-center mt-4">
+    <LangToggle client:idle />
+  </div>
+  <div class="text-center mt-4">
+    <a href="mailto:contact@weeklymortgagerates.org" class="small link-dotted fw-light">contact@weeklymortgagerates.org</a>
+  </div>
+  <div class="text-center mt-5">
+    <MobileApp client:idle />
+  </div>
+</footer>

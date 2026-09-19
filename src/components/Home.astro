@@ -1,0 +1,148 @@
+---
+import { isAheadOfItsTime } from '@utils/common'
+import type { Rates, YeahlyAvgRates } from '@api-v1-types/index'
+import { tryLoad } from '@lib/server/http'
+import {
+  getLatestUsWeekly,
+  getUsWeeklyByYear,
+  listUsYearly,
+} from '@lib/server/rates'
+import YearlyRateCharts from '@components/react/YearlyRateCharts'
+import MortgageCalculator from '@components/react/MortgageCalculator'
+import LatestRates from '@components/react/LatestRates'
+import WeeklyRateCharts from '@components/react/WeeklyRateCharts'
+
+// no island architecture
+// const year = Astro.url.searchParams.get('year')
+
+// island architecture
+const referer = Astro.request.headers.get('Referer')
+const year = referer ? new URL(referer).searchParams.get('year') : null
+
+// The current-year min/max/average stats need both rates.
+const withRates = (rows: Awaited<ReturnType<typeof getUsWeeklyByYear>> = []) =>
+  rows.filter(
+    (r): r is typeof r & Rates =>
+      r.us30_yr_frm !== null && r.us15_yr_frm !== null,
+  )
+
+const latestRates = (await tryLoad('latest rates', getLatestUsWeekly)) as
+  | Rates
+  | null
+  | undefined
+const latestRateWeek = latestRates?.week
+
+const thisYear = new Date().getUTCFullYear()
+const currentYear = isAheadOfItsTime(thisYear, latestRateWeek)
+  ? thisYear - 1
+  : thisYear;
+const years = Array.from({ length: currentYear - 1970 }, (_, i) => 1971 + i)
+
+const firstYear = years[0]
+const lastYear = years[years.length - 1]
+
+const selectedYear =
+  year && Number(year) >= 1971 && Number(year) <= currentYear
+    ? Number(year)
+    : currentYear
+
+const [yearlyAvgRatesAll, yearlyRatesAll, currentYearRatesAll] =
+  await Promise.all([
+    tryLoad('yearly averages', () => listUsYearly('asc')),
+    tryLoad(`${selectedYear} rates`, () => getUsWeeklyByYear(selectedYear, 'asc')),
+    tryLoad(`${currentYear} rates`, () => getUsWeeklyByYear(currentYear, 'asc')),
+  ])
+
+const yearlyAvgRates = yearlyAvgRatesAll as YeahlyAvgRates[] | undefined
+// The charts plot only the 30-year line when a year has no 15-year rates
+// (before 1991), so keep those weeks.
+const yearlyRates = (yearlyRatesAll ?? []).filter(
+  (r) => r.us30_yr_frm !== null,
+) as Rates[]
+const currentYearRates = withRates(currentYearRatesAll)
+
+const numberOfWeeks = yearlyRates.length
+
+const us30Rates = currentYearRates.map((item) => item.us30_yr_frm)
+const us15Rates = currentYearRates.map((item) => item.us15_yr_frm)
+const hasCurrentYearRates = us30Rates.length > 0
+
+const us30Min = hasCurrentYearRates ? Math.min(...us30Rates) : 0
+const us30Max = hasCurrentYearRates ? Math.max(...us30Rates) : 0
+
+const us15Min = hasCurrentYearRates ? Math.min(...us15Rates) : 0
+const us15Max = hasCurrentYearRates ? Math.max(...us15Rates) : 0
+
+const current30Yr = latestRates?.us30_yr_frm ?? 0
+const current15Yr = latestRates?.us15_yr_frm ?? 0
+
+// Where this week's rate sits between the year's low (0%) and high (100%).
+const rangePosition = (value: number, min: number, max: number) =>
+  max > min ? ((value - min) / (max - min)) * 100 : 50
+const averagePercentage30Yr = rangePosition(current30Yr, us30Min, us30Max)
+const averagePercentage15Yr = rangePosition(current15Yr, us15Min, us15Max)
+
+const count = currentYearRates.length
+
+const avg30 = count ? us30Rates.reduce((sum, v) => sum + v, 0) / count : 0
+const avg15 = count ? us15Rates.reduce((sum, v) => sum + v, 0) / count : 0
+---
+
+<>
+  {
+    latestRates && hasCurrentYearRates && (
+      <LatestRates
+        client:idle
+        count={count!}
+        avg30={avg30}
+        latestRates={latestRates}
+        currentYearRates={currentYearRates!}
+        us30Min={us30Min}
+        us30Max={us30Max}
+        current30Yr={current30Yr}
+        averagePercentage30Yr={averagePercentage30Yr}
+        avg15={avg15}
+        us15Min={us15Min}
+        us15Max={us15Max}
+        current15Yr={current15Yr}
+        averagePercentage15Yr={averagePercentage15Yr}
+      />
+    )
+  }
+
+  <hr class="my-4" />
+
+  {
+    yearlyRates && (
+      <WeeklyRateCharts
+        client:idle
+        yearlyRates={yearlyRates}
+        selectedYear={selectedYear}
+        numberOfWeeks={numberOfWeeks}
+        years={years.reverse()}
+      />
+    )
+  }
+
+  <hr class="my-4" />
+
+  {
+    yearlyAvgRates && (
+      <YearlyRateCharts
+        client:idle
+        yearlyAvgRates={yearlyAvgRates}
+        selectedYear={selectedYear}
+        firstYear={firstYear}
+        lastYear={lastYear}
+      />
+    )
+  }
+
+  <hr class="my-4" />
+
+  <MortgageCalculator
+    current30Yr={current30Yr}
+    current15Yr={current15Yr}
+    client:idle
+  />
+</>

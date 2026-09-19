@@ -1,0 +1,57 @@
+{
+  "header": {
+    "title": "Weekly U.S. Mortgage Rates"
+  },
+  "footer": {
+    "copyright": "Weekly U.S. Mortgage Rates &copy;"
+  },
+  "updatedRates": {
+    "title": "U.S. Weekly Avg as of",
+    "weekRange": "Week Range",
+    "wkAvg": "Wk avg",
+    "30YrFixed": "30 Yr. Fixed",
+    "15YrFixed": "15 Yr. Fixed"
+  },
+  "weeklyRates": {
+    "title": "Weekly Rates for",
+    "lineChart": "Line Chart",
+    "columnChart": "Column Chart",
+    "30YrLegend": "30 Yr. Fixed",
+    "15YrLegend": "15 Yr. Fixed",
+    "hAxis": "Weeks of",
+    "hAxisAlt": "Week of",
+    "vAxis": "Rates",
+    "selectYear": "Select Year"
+  },
+  "annualAvgRates": {
+    "title": "Annual Average Rates",
+    "lineChart": "Line Chart",
+    "columnChart": "Column Chart",
+    "30YrLegend": "30 Yr. Fixed",
+    "15YrLegend": "15 Yr. Fixed",
+    "hAxis": "Years",
+    "vAxis": "Rates"
+  },
+  "mortgageCalculator": {
+    "title": "Mortgage Payment Calculator",
+    "breakdownTitle": "Mortgage Payment Breakdown",
+    "homePrice": "Home Price",
+    "downPayment": "Down Payment",
+    "loanTerm": "Loan Term",
+    "interestRate": "Interest Rate",
+    "propertyTax": "Property Tax",
+    "homeownersInsurance": "Homeowners Insurance",
+    "privateMortgageInsurance": "Private Mortgage Insurance",
+    "pmi": "PMI",
+    "hoaFees": "HOA Fees",
+    "principalAndInterest": "Principal & Interest",
+    "taxesInsuranceHoaFees": "Taxes, Insurance, HOA Fees",
+    "pmiHoaFees": "PMI, HOA Fees",
+    "loanAmount": "Loan Amount",
+    "monthlyTotal": "Monthly Total",
+    "30YrFixed": "30 Yr. Fixed",
+    "15YrFixed": "15 Yr. Fixed",
+    "clear": "Clear",
+    "month": "month"
+  }
+}

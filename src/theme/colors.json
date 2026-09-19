@@ -1,0 +1,19 @@
+{
+  "chart": {
+    "30YrFixed": "#0284c7",
+    "15YrFixed": "#ff7f0e",
+    "principalAndInterest": "#64acdb",
+    "propertyTax": "#f8c268",
+    "homeownersInsurance": "#b57edc",
+    "privateMortgageInsurance": "#6fd2df",
+    "hoaFees": "#f4609f",
+    "bgLight": "#f5f5f5",
+    "bgDark": "#333333",
+    "usVisits": "#4da64d"
+  },
+  "common": {
+    "loanAmount": "#e11d48",
+    "disabledLight": "#e1e1e133",
+    "disabledDark": "#555555aa"
+  }
+}

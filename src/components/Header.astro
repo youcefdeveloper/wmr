@@ -1,0 +1,16 @@
+---
+import ThemeToggle from '@components/react/ThemeToggle'
+import HeaderTitle from './react/HeaderTitle'
+import Logo from '@components/react/Logo.tsx'
+---
+
+<header class="fixed-top">
+  <div class="container d-flex justify-content-center align-items-center">
+    <div class="d-flex justify-content-center align-items-center gap-2">
+      <a href="/">
+        <Logo client:idle />
+      </a>
+      <!--<HeaderTitle client:idle />-->
+    </div>
+  </div>
+</header>

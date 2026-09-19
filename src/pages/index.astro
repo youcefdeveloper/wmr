@@ -1,0 +1,11 @@
+---
+import Home from '@components/Home.astro'
+import Spinner from '@components/Spinner.astro'
+import Layout from '@layouts/Layout.astro'
+---
+
+<Layout title="Weekly Mortgage Rates">
+  <Home server:defer>
+    <Spinner slot="fallback" />
+  </Home>
+</Layout>

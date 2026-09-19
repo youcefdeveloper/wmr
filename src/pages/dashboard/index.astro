@@ -1,0 +1,196 @@
+---
+import Layout from '@layouts/AdminLayout.astro'
+import DevicesChart from '@components/admin/react/DevicesChart'
+import DeviceChart from '@components/admin/react/DeviceChart'
+import { tryLoad } from '@lib/server/http'
+import { getDeviceStats, getDeviceStatsByModel } from '@lib/server/devices'
+import {
+  buildDevicesChartData,
+  buildDeviceData,
+  type PlatformData,
+  type Device,
+  type NewPlatformData,
+} from '@utils/common'
+import DeviceCard from '@components/admin/react/DeviceCard'
+import DeviceUpdatesHistoryCard from '@components/admin/react/DeviceUpdatesHistoryCard'
+import CurrentRates from './partial/CurrentRates.astro'
+import ReturningCard from '@components/admin/react/ReturningCard.tsx'
+
+import { getSession } from 'auth-astro/server'
+import type { CountryData } from '@admin-types/adminTypes'
+
+const session = await getSession(Astro.request)
+const userEmail = session?.user?.email ?? undefined
+
+function sumTotals(data: CountryData[]): number {
+  return data.reduce((sum, country) => sum + country.total, 0);
+}
+
+const getUserStats = () => tryLoad('device stats', getDeviceStats)
+
+const getUserStatsByModel = () =>
+  tryLoad('device stats by model', getDeviceStatsByModel)
+
+/*
+const fetchUSStatesChartData = async (): Promise<USVisitType | undefined> => {
+  try {
+    const res = await client.get(`/api/v1/update-history/us-states-chart?city-order=count`)
+
+    if (res.statusText !== 'OK') {
+      throw new Error('Could not fetch us states chart data')
+    }
+
+    return res.data
+  } catch (error) {
+    logger.error(error, 'Error')
+  }
+}
+
+const fetchLocationStatsData = async (): Promise<CountriesResponse | undefined> => {
+  try {
+    const res = await client.get(`/api/v1/update-history/location-stats`)
+
+    if (res.statusText !== 'OK') {
+      throw new Error('Could not fetch location stats data')
+    }
+
+    return res.data
+  } catch (error) {
+    logger.error(error, 'Error')
+  }
+}
+*/
+
+const userStats = ((await getUserStats()) ?? []) as NewPlatformData[]
+const deviceStats = userStats
+  .filter((item): item is NewPlatformData & { platform: Exclude<string, 'all'> } => item.platform !== 'all')
+  .map(({ platform, total }): PlatformData => ({ platform, total }))
+
+// const extractStats = (platform: string): ReturningStats | null => {
+//   const stat = userStats.find(item => item.platform === platform)
+//   if (!stat) return null
+//   return {
+//     returning: stat.returning ?? 0,
+//     oneTime: stat.oneTime ?? 0,
+//   }
+// }
+
+const totalDevices: number = deviceStats.reduce((sum: number, item: PlatformData) => sum + item.total, 0)
+const data = buildDevicesChartData([...deviceStats].reverse())
+
+// console.log('deviceStats?', deviceStats)
+// const returningAllPlatform = buildReturningChartData([...returningAllStats].reverse())
+
+const userStatsByModel: Record<string, Device[]> =
+  (await getUserStatsByModel()) ?? {}
+const totalIOSDevices: number = userStatsByModel.ios?.reduce((sum: number, device: Device) => sum + device.total, 0)
+const totalAndroidDevices: number = userStatsByModel.android?.reduce((sum: number, device: Device) => sum + device.total, 0)
+const iOSDeviceData = buildDeviceData(userStatsByModel.ios)
+const androidDeviceData = buildDeviceData(userStatsByModel.android)
+
+const currentYear = new Date().getFullYear()
+const years = Array.from({ length: currentYear - 1970 }, (_, i) => 1971 + i)
+const firstYear = years[0]
+const lastYear = years[years.length - 1]
+const selectedYear =
+  firstYear && Number(firstYear) >= 1971 && Number(firstYear) <= currentYear
+    ? Number(firstYear)
+    : currentYear
+
+/*
+// const yearlyAvgRates = await fetchYearlyAvgRates()
+const usStatesChartData = await fetchUSStatesChartData()
+const locationStatsData = await fetchLocationStatsData()
+const usTotal = locationStatsData?.find((c: CountryData) => c.name === "United States")?.total ?? 0;
+const allTotal = locationStatsData ? sumTotals(locationStatsData) : 0;
+
+// Calculate total visitors, excluding 'Unknown'
+var totalUSVisitors = 0;
+var unknownVisitors = 0;
+for (var i = 1; i < usStatesChartData!.length; i++) {
+  if (usStatesChartData![i][0] && usStatesChartData![i][0].toLowerCase() === 'unknown') {
+    unknownVisitors += usStatesChartData![i][1] as number;
+  } else {
+    totalUSVisitors += usStatesChartData![i][1] as number;
+  }
+}
+
+var stateCount = 0;
+for (var i = 1; i < usStatesChartData!.length; i++) {
+  if (usStatesChartData![i][0] && usStatesChartData![i][0].toLowerCase() !== 'unknown') {
+    stateCount++;
+  }
+}
+*/
+
+
+// console.log('totalUSVisitors?', totalUSVisitors)
+// console.log('unknownVisitors?', unknownVisitors)
+// console.log('stateCount?', stateCount)
+// console.log('usStatesChartData?', usStatesChartData)
+// console.log('userEmail?', userEmail)
+// console.log('locationStatsData?', usTotal)
+---
+
+<Layout title="WMR | Dashboard">
+
+  <div class="row">
+      <div class="col-lg-6 mb-4">
+        <CurrentRates />
+      </div>
+      <div class="col-lg-6 mb-4">
+        <ReturningCard client:only data={userStats} />
+      </div>
+      <div class="col-lg-6 mb-4">
+        <DeviceUpdatesHistoryCard client:only data={userStats} />
+      </div>
+      <div class="col-lg-6 mb-4">
+        <DeviceCard client:only title="All Devices" totalDevices={totalDevices} isTitleLinked chartType="pie">
+          <DevicesChart client:only data={data} />
+        </DeviceCard>
+      </div>
+      <div class="col-lg-6 mb-4">
+        <DeviceCard 
+          client:only 
+          title="iOS Devices"
+          totalDevices={totalIOSDevices}
+          chartType="bar"
+          platform={'ios'}>
+          <DeviceChart
+            client:only
+            data={iOSDeviceData}
+            platform={'ios'}
+          />
+        </DeviceCard>
+      </div>
+      <div class="col-lg-6 mb-4">
+        <DeviceCard 
+          client:only 
+          title="Android Devices" 
+          totalDevices={totalAndroidDevices} 
+          chartType="bar"
+          platform={'android'}>
+          <DeviceChart
+            client:only
+            data={androidDeviceData}
+            platform={'android'}
+          />
+        </DeviceCard>
+      </div>
+      <!-- <div class="col-lg-12 mb-4">
+        <USVisitCard client:only 
+          data={usStatesChartData!} 
+          visitCount={usTotal} 
+          totalUSVisitors={totalUSVisitors} 
+          unknownVisitors={unknownVisitors} 
+          stateCount={stateCount} />
+      </div>
+      <div class="col-lg-12 mb-4">
+        <AllVisitCard client:only 
+          data={locationStatsData!} 
+          allVisitCount={allTotal} 
+        />
+      </div> -->
+  </div>
+  
+</Layout>

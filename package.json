@@ -1,0 +1,52 @@
+{
+  "name": "mortgage_rates_frontend",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "dev:ip": "astro dev --host",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx --env-file=.env.local scripts/migrate.ts",
+    "db:migrate:vercel": "tsx --env-file=.env.vercel scripts/migrate.ts",
+    "db:studio": "drizzle-kit studio",
+    "db:import-mysql": "tsx --env-file=.env.local scripts/migrate-from-mysql.ts",
+    "db:import-mysql:vercel": "tsx --env-file=.env.vercel scripts/migrate-from-mysql.ts",
+    "import:rates": "tsx --env-file=.env.local scripts/import-rates.ts"
+  },
+  "dependencies": {
+    "@astrojs/react": "^5.0.7",
+    "@astrojs/vercel": "^10.0.8",
+    "@auth/core": "^0.37.4",
+    "@react-native-async-storage/async-storage": "^2.1.2",
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.5",
+    "astro": "^6.4.8",
+    "auth-astro": "^4.2.0",
+    "axios": "^1.9.0",
+    "drizzle-orm": "^0.45.2",
+    "exceljs": "^4.4.0",
+    "lodash.debounce": "^4.0.8",
+    "maxmind": "^5.0.7",
+    "pino": "^9.6.0",
+    "postgres": "^3.4.9",
+    "react": "^19.1.0",
+    "react-datepicker": "^8.7.0",
+    "react-dom": "^19.1.0",
+    "react-google-charts": "^5.2.1",
+    "react-toastify": "^11.0.5",
+    "zod": "^3.25.74",
+    "zustand": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/lodash.debounce": "^4.0.9",
+    "@types/react-datepicker": "^6.2.0",
+    "drizzle-kit": "^0.31.10",
+    "mysql2": "^3.24.4",
+    "pino-prettier": "^3.0.1-dev",
+    "tsx": "^4.23.13",
+    "typescript": "^6.0.3"
+  }
+}

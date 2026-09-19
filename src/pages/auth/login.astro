@@ -1,0 +1,35 @@
+---
+import Layout from '@layouts/AuthLayout.astro'
+import LoginCard from '@components/admin/react/LoginCard'
+
+import { getSession } from 'auth-astro/server'
+
+const session = await getSession(Astro.request)
+
+if (session) {
+  return Astro.redirect('/dashboard')
+}
+---
+
+<Layout title="WMR | Login">
+  <div class="d-flex justify-content-center align-items-center min-vh-100">
+    <div class="container-lg py-5">
+      <div class="row">
+        <div class="col-md-7 col-lg-6 col-xl-5 mx-auto px-0">
+          <LoginCard client:load />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    function themeToggle() {
+      return {
+        isDark: false,
+        init() {
+          this.isDark = localStorage.getItem('admin_theme_storage.state.theme') === 'dark'
+        },
+      }
+    }
+  </script>
+</Layout>

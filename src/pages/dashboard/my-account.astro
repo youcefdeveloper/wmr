@@ -1,0 +1,17 @@
+---
+import Layout from '@layouts/AdminLayout.astro'
+import MyAccount from '@components/admin/react/MyAccount'
+import { getSession } from 'auth-astro/server'
+
+const session = await getSession(Astro.request)
+
+if (!session) {
+  return Astro.redirect('/auth/login')
+}
+---
+
+<Layout title="WMR | My Account">
+  <!-- <h4 class="mb-4 fw-bold">My Account</h4> -->
+
+  <MyAccount client:only="react" session={session} />
+</Layout>

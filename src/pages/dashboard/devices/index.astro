@@ -1,0 +1,99 @@
+---
+import Layout from '@layouts/AdminLayout.astro'
+import type { Rates } from '@api-v1-types/index.ts'
+import { tryLoad } from '@lib/server/http'
+import { pageDevices } from '@lib/server/devices'
+import DevicesGrid from '@components/admin/react/devices/DevicesGrid.tsx'
+import NewDeviceButton from '@components/admin/react/devices/NewDeviceButton.tsx'
+import type { Filter } from '@admin-types/adminTypes.ts'
+
+// ✅ Server-side load once (SSR)
+const getAllUsers = (q: URLSearchParams) =>
+  tryLoad('devices', () =>
+    pageDevices({
+      page: parseInt(q.get('page') ?? '', 10) || 1,
+      size: parseInt(q.get('size') ?? '', 10) || 10,
+      platform: q.get('platform')?.trim() ?? '',
+      model: q.get('model')?.trim() ?? '',
+      visit: q.get('visit')?.trim() ?? '',
+      visitBy: q.get('visitBy')?.trim() ?? '',
+      start: q.get('start'),
+      end: q.get('end'),
+      order: q.get('order')?.toLowerCase() === 'asc' ? 'asc' : 'desc',
+      uOrder: q.get('uOrder')?.trim() ?? '',
+      vOrder: q.get('vOrder')?.trim() ?? '',
+    }),
+  )
+
+// ✅ Build query params (SSR-safe)
+const url = new URL(Astro.request.url)
+const queryParams = new URLSearchParams(url.search)
+
+function setParam(key: string, value: string | null) {
+  if (value && value.trim() !== '') {
+    queryParams.set(key, value)
+  } else {
+    queryParams.delete(key)
+  }
+}
+
+const page = Astro.url.searchParams.get('page')
+const size = Astro.url.searchParams.get('size')
+const platform = Astro.url.searchParams.get('platform')
+const model = Astro.url.searchParams.get('model')
+const order = Astro.url.searchParams.get('order')
+const start = Astro.url.searchParams.get('start')
+const end = Astro.url.searchParams.get('end')
+const uOrder = Astro.url.searchParams.get('uOrder') // Fetch uOrder parameter
+
+// ✅ Apply parameters
+setParam('page', page)
+setParam('size', size)
+setParam('platform', platform)
+setParam('model', model)
+setParam('order', order)
+setParam('start', start)
+setParam('end', end)
+setParam('uOrder', uOrder) // Set uOrder parameter
+
+// ✅ SSR load
+const allUsers = await getAllUsers(queryParams)
+const { data = [], ...meta } = allUsers ?? { page: 1, size: 10, total: 0, pages: 0, from: 0, to: 0 }
+
+// ✅ Pagination metadata
+const filterMeta = {
+  fromPage: meta.from,
+  page: meta.page,
+  itemsPerPage: meta.size,
+  toPage: meta.to,
+  totalPages: meta.pages,
+  totalItems: meta.total,
+}
+
+// ✅ Build filter object (for hydration)
+const filter: Filter = {
+  platform: platform && platform.trim() !== '' ? platform.trim() : null,
+  model: model && model.trim() !== '' ? model.trim() : null,
+  size: size ? parseInt(size) : 10,
+  page: page ? parseInt(page) : 1,
+  start: start && start.trim() !== '' ? start.trim() : null,
+  end: end && end.trim() !== '' ? end.trim() : null,
+  order: order && order.trim() !== '' ? (order.toLowerCase() as 'asc' | 'desc') : null,
+  uOrder: uOrder && uOrder.trim() !== '' ? (uOrder.toLowerCase() as 'asc' | 'desc') : null, // Handle uOrder
+}
+
+// console.log('filter?', filter)
+---
+
+<Layout title="WMR | Devices">
+  <!-- ✅ React grid now fully SPA-aware -->
+  <DevicesGrid
+    client:only
+    fromPage={meta.from}
+    toPage={meta.to}
+    totalItems={meta.total}
+    devices={data}
+    filter={filter}
+    filterMeta={filterMeta}
+  />
+</Layout>

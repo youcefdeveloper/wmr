@@ -1,0 +1,28 @@
+---
+import { type Rates } from '../../api/v1/types'
+import { tryLoad } from '@lib/server/http'
+import { getLatestUsWeekly } from '@lib/server/rates'
+import CurrentRateCard from '../../../components/admin/react/CurrentRateCard'
+import { formatDate } from '../../../utils'
+
+const fetchLatestWeekRates = () =>
+  tryLoad('latest rates', getLatestUsWeekly) as Promise<Rates | null | undefined>
+
+const latestRates = await fetchLatestWeekRates()
+const current30Yr = latestRates?.us30_yr_frm!
+const current15Yr = latestRates?.us15_yr_frm!
+const week = latestRates?.week!
+
+const { term } = Astro.props
+---
+
+<CurrentRateCard client:only title=`U.S. Weekly Rate` day={formatDate(week)}>
+  <div class="d-flex justify-content-between align-items-stretch gap-0">
+    <div class="text-center w-100 pt-0 py-4">
+      <h6>{term} Yr. Fixed</h6>
+      <h1 class="display-4 fw-bold">
+        {Number(term) === 30 ? current30Yr.toFixed(2) : current15Yr.toFixed(2)}%
+      </h1>
+    </div>
+  </div>
+</CurrentRateCard>

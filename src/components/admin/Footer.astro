@@ -1,0 +1,18 @@
+---
+import ThemeToggle from '@components/admin/react/ThemeToggle'
+---
+
+<footer>
+  <div class="small fw-light text-center">
+    <div class="d-flex justify-content-center align-items-center">
+      <div class="mode-toggle-- me-2">
+        <!--<a-->
+        <!--  href="#"-->
+        <!--  @click.prevent="toggleTheme()"-->
+        <!--  :class="isDark ? 'bi bi-brightness-high fs-5' : 'bi bi-moon fs-5'"></a>-->
+        <ThemeToggle client:idle />
+      </div>
+      <div>WMR &copy; {new Date().getFullYear()}</div>
+    </div>
+  </div>
+</footer>

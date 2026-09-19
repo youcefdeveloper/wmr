@@ -1,0 +1,29 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist", "public"],
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["src/components/*"],
+      "@layouts/*": ["src/layouts/*"],
+      "@assets/*": ["src/assets/*"],
+      "@helpers/*": ["src/helpers/*"],
+      "@stores/*": ["src/stores/*"],
+      "@services/*": ["src/services/*"],
+      "@api-v1-types/*": ["src/pages/api/v1/types/*"],
+      "@api-v1-services/*": ["src/pages/api/v1/services/*"],
+      "@api-v1-config/*": ["src/pages/api/v1/config/*"],
+      "@config/*": ["src/config/*"],
+      "@lib/*": ["src/lib/*"],
+      "@lang/*": ["src/lang/*"],
+      "@theme/*": ["src/theme/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@utils/*": ["src/utils/*"],
+      "@admin-types/*": ["src/admin-types/*"]
+    }
+  }
+}

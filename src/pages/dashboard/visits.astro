@@ -1,0 +1,15 @@
+---
+import VisitsComp from '@components/admin/VisitsComp.astro'
+import Spinner from '@components/Spinner.astro'
+import Layout from '@layouts/AdminLayout.astro'
+---
+
+<Layout title="WMR | Visits">
+  <div class="row">
+    <div class="col-lg-12 mb-4">
+        <VisitsComp server:defer>
+            <Spinner slot="fallback" />
+        </VisitsComp>
+      </div>
+  </div>
+</Layout>

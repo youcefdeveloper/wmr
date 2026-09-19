@@ -1,0 +1,56 @@
+---
+import Layout from '@layouts/AdminLayout.astro'
+import UserManagement from '@components/admin/react/UserManagement'
+import { getSession } from 'auth-astro/server'
+import type { Filter } from '@admin-types/adminTypes.ts'
+
+const session = await getSession(Astro.request)
+
+if (!session) {
+  return Astro.redirect('/auth/login')
+}
+
+const page = Astro.url.searchParams.get('page')
+const size = Astro.url.searchParams.get('size')
+const role = Astro.url.searchParams.get('role')
+const provider = Astro.url.searchParams.get('provider')
+const active = Astro.url.searchParams.get('active')
+const start = Astro.url.searchParams.get('start')
+const end = Astro.url.searchParams.get('end')
+const uOrder = Astro.url.searchParams.get('uOrder')
+const eOrder = Astro.url.searchParams.get('eOrder')
+const cOrder = Astro.url.searchParams.get('cOrder')
+const rOrder = Astro.url.searchParams.get('rOrder')
+
+const filter: Filter = {
+  size: size ? parseInt(size) : 10,
+  page: page ? parseInt(page) : 1,
+  role: role && role.trim() !== '' ? role as 'superadmin' | 'admin' | 'user' : null,
+  provider: provider && provider.trim() !== '' ? provider as 'google' | 'github' | 'linkedin' | 'microsoft' | 'apple' : null,
+  active: active && active.trim() !== '' ? parseInt(active) as 0 | 1 : null,
+  start: start && start.trim() !== '' ? start.trim() : null,
+  end: end && end.trim() !== '' ? end.trim() : null,
+  uOrder: uOrder && uOrder.trim() !== '' ? uOrder.toLowerCase() as 'asc' | 'desc' : null,
+  eOrder: eOrder && eOrder.trim() !== '' ? eOrder.toLowerCase() as 'asc' | 'desc' : null,
+  cOrder: cOrder && cOrder.trim() !== '' ? cOrder.toLowerCase() as 'asc' | 'desc' : null,
+  rOrder: rOrder && rOrder.trim() !== '' ? rOrder.toLowerCase() as 'asc' | 'desc' : null,
+  // Explicitly set device-related properties to undefined
+  platform: undefined,
+  model: undefined,
+  order: undefined,
+  vOrder: undefined,
+  visit: undefined,
+}
+
+console.log('User Management Filter:', session);
+---
+
+<Layout title="WMR | Settings">
+  <UserManagement 
+    client:only="react" 
+    filter={filter} 
+    email={session?.user?.email} 
+    image={session?.user?.image} 
+    provider={session?.user?.provider} 
+  />
+</Layout>

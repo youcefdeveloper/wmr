@@ -1,0 +1,124 @@
+{
+  "ar": {
+    "header": {
+      "title": "معدلات الرهن العقاري الأسبوعية"
+    },
+    "footer": {
+      "copyright": "معدلات الرهن العقاري الأسبوعية &copy;",
+      "langVersion": "الإصدار العربي",
+      "getMobileApp": "تحميل تطبيق الجوال",
+      "getIOSApp": "تحميل تطبيق الآيفون",
+      "getAndroidApp": "تحميل تطبيق الأندرويد"
+    },
+    "updatedRates": {
+      "title": "متوسط الأسبوع بأمريكا -",
+      "weekRange": "نطاق الأسبوع",
+      "wkAvg": "متوسط أ",
+      "30YrFixed": "ثابت 30 سنة",
+      "15YrFixed": "ثابت 15 سنة"
+    },
+    "weeklyRates": {
+      "title": "المعدلات الأسبوعية لـ",
+      "lineChart": "مخطط خطي",
+      "columnChart": "مخطط عمودي",
+      "30YrLegend": "ثابت لمدة 30 سنة",
+      "15YrLegend": "ثابت لمدة 15 سنة",
+      "hAxis": "أسبوعًا من عام",
+      "hAxisAlt": "أسبوع من عام",
+      "vAxis": "المعدلات",
+      "selectYear": "اختر السنة"
+    },
+    "annualAvgRates": {
+      "title": "متوسط المعدلات السنوية",
+      "lineChart": "مخطط خطي",
+      "columnChart": "مخطط عمودي",
+      "30YrLegend": "ثابت لمدة 30 سنة",
+      "15YrLegend": "ثابت لمدة 15 سنة",
+      "hAxis": "سنوات",
+      "vAxis": "المعدلات"
+    },
+    "mortgageCalculator": {
+      "title": "حاسبة دفعة الرهن العقاري",
+      "breakdownTitle": "تفصيل دفعة الرهن العقاري",
+      "homePrice": "سعر المنزل",
+      "downPayment": "الدفعة الأولى",
+      "loanTerm": "مدة القرض",
+      "interestRate": "نسبة الفائدة",
+      "propertyTax": "ضريبة الممتلكات",
+      "homeownersInsurance": "تأمين أصحاب المنازل",
+      "privateMortgageInsurance": "تأمين الرهن العقاري الخاص",
+      "pmi": "تأمين الرهن العقاري",
+      "hoaFees": "رسوم جمعية المالكين",
+      "principalAndInterest": "الأصل و الفائدة",
+      "taxesInsuranceHoaFees": "الضرائب، التأمين، رسوم الجمعية",
+      "pmiHoaFees": "تأمين الرهن، رسوم الجمعية",
+      "loanAmount": "مبلغ القرض",
+      "monthlyTotal": "الإجمالي الشهري",
+      "30YrFixed": "ثابت لمدة 30 سنة",
+      "15YrFixed": "ثابت لمدة 15 سنة",
+      "clear": "مسح",
+      "month": "شهر"
+    }
+  },
+  "en": {
+    "header": {
+      "title": "Weekly Mortgage Rates"
+    },
+    "footer": {
+      "copyright": "Weekly Mortgage Rates &copy;",
+      "langVersion": "English Version",
+      "getMobileApp": "Get Mobile App",
+      "getIOSApp": "Get iOS App",
+      "getAndroidApp": "Get Android App"
+    },
+    "updatedRates": {
+      "title": "U.S. Weekly Average - ",
+      "weekRange": "Week Range",
+      "wkAvg": "Wk avg",
+      "30YrFixed": "30 Yr. Fixed",
+      "15YrFixed": "15 Yr. Fixed"
+    },
+    "weeklyRates": {
+      "title": "Weekly Rates for",
+      "lineChart": "Line Chart",
+      "columnChart": "Column Chart",
+      "30YrLegend": "30 Yr. Fixed",
+      "15YrLegend": "15 Yr. Fixed",
+      "hAxis": "Weeks of",
+      "hAxisAlt": "Week of",
+      "vAxis": "Rates",
+      "selectYear": "Select Year"
+    },
+    "annualAvgRates": {
+      "title": "Annual Average Rates",
+      "lineChart": "Line Chart",
+      "columnChart": "Column Chart",
+      "30YrLegend": "30 Yr. Fixed",
+      "15YrLegend": "15 Yr. Fixed",
+      "hAxis": "Years",
+      "vAxis": "Rates"
+    },
+    "mortgageCalculator": {
+      "title": "Mortgage Payment Calculator",
+      "breakdownTitle": "Mortgage Payment Breakdown",
+      "homePrice": "Home Price",
+      "downPayment": "Down Payment",
+      "loanTerm": "Loan Term",
+      "interestRate": "Interest Rate",
+      "propertyTax": "Property Tax",
+      "homeownersInsurance": "Homeowners Insurance",
+      "privateMortgageInsurance": "Private Mortgage Insurance",
+      "pmi": "PMI",
+      "hoaFees": "HOA Fees",
+      "principalAndInterest": "Principal & Interest",
+      "taxesInsuranceHoaFees": "Taxes, Insurance, HOA Fees",
+      "pmiHoaFees": "PMI, HOA Fees",
+      "loanAmount": "Loan Amount",
+      "monthlyTotal": "Monthly Total",
+      "30YrFixed": "30 Yr. Fixed",
+      "15YrFixed": "15 Yr. Fixed",
+      "clear": "Clear",
+      "month": "month"
+    }
+  }
+}

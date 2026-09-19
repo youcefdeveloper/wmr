@@ -1,0 +1,46 @@
+---
+import { canViewApiDocs } from '@lib/server/docs-access'
+
+// Open in development; in production only for signed-in dashboard users.
+if (!(await canViewApiDocs(Astro.request))) {
+  return Astro.redirect('/auth/login')
+}
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Weekly Mortgage Rates API</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css"
+    />
+    <style>
+      body {
+        margin: 0;
+        background: #fafafa;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+    <script
+      is:inline
+      src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"
+    ></script>
+    <script is:inline>
+      window.ui = SwaggerUIBundle({
+        url: '/api-docs/openapi.json',
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        persistAuthorization: true,
+        tryItOutEnabled: true,
+        docExpansion: 'list',
+        defaultModelsExpandDepth: 0,
+      })
+    </script>
+  </body>
+</html>

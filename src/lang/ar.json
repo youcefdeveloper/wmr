@@ -1,0 +1,57 @@
+{
+  "header": {
+    "title": "معدلات الرهن العقاري الأسبوعية في و.م.أ"
+  },
+  "footer": {
+    "copyright": "معدلات الرهن العقاري الأسبوعية في و.م.أ &copy;"
+  },
+  "updatedRates": {
+    "title": "متوسط الأسبوع في و.م.أ اعتبارًا من",
+    "weekRange": "نطاق الأسبوع",
+    "wkAvg": "متوسط الأسبوع",
+    "30YrFixed": "ثابت لمدة 30 سنة",
+    "15YrFixed": "ثابت لمدة 15 سنة"
+  },
+  "weeklyRates": {
+    "title": "المعدلات الأسبوعية لـ",
+    "lineChart": "مخطط خطي",
+    "columnChart": "مخطط عمودي",
+    "30YrLegend": "ثابت لمدة 30 سنة",
+    "15YrLegend": "ثابت لمدة 15 سنة",
+    "hAxis": "أسبوعًا من عام",
+    "hAxisAlt": "أسبوع من عام",
+    "vAxis": "المعدلات",
+    "selectYear": "اختر السنة"
+  },
+  "annualAvgRates": {
+    "title": "متوسط المعدلات السنوية",
+    "lineChart": "مخطط خطي",
+    "columnChart": "مخطط عمودي",
+    "30YrLegend": "ثابت لمدة 30 سنة",
+    "15YrLegend": "ثابت لمدة 15 سنة",
+    "hAxis": "سنوات",
+    "vAxis": "المعدلات"
+  },
+  "mortgageCalculator": {
+    "title": "حاسبة دفعة الرهن العقاري",
+    "breakdownTitle": "تفصيل دفعة الرهن العقاري",
+    "homePrice": "سعر المنزل",
+    "downPayment": "الدفعة الأولى",
+    "loanTerm": "مدة القرض",
+    "interestRate": "نسبة الفائدة",
+    "propertyTax": "ضريبة الممتلكات",
+    "homeownersInsurance": "تأمين أصحاب المنازل",
+    "privateMortgageInsurance": "تأمين الرهن العقاري الخاص",
+    "pmi": "تأمين الرهن العقاري",
+    "hoaFees": "رسوم جمعية المالكين",
+    "principalAndInterest": "الأصل و الفائدة",
+    "taxesInsuranceHoaFees": "الضرائب، التأمين، رسوم الجمعية",
+    "pmiHoaFees": "تأمين الرهن، رسوم الجمعية",
+    "loanAmount": "مبلغ القرض",
+    "monthlyTotal": "الإجمالي الشهري",
+    "30YrFixed": "ثابت لمدة 30 سنة",
+    "15YrFixed": "ثابت لمدة 15 سنة",
+    "clear": "مسح",
+    "month": "شهر"
+  }
+}

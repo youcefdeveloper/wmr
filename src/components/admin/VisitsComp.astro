@@ -1,0 +1,63 @@
+---
+import type { CountriesResponse, CountryData, USVisitType } from '@admin-types/adminTypes'
+import AllVisitCard from '@components/admin/react/AllVisitCard';
+import USVisitCard from '@components/admin/react/USVisitCard';
+import { tryLoad } from '@lib/server/http'
+import { getLocationStats, getUsStatesChart } from '@lib/server/history'
+
+
+function sumTotals(data: CountryData[]): number {
+  return data.reduce((sum, country) => sum + country.total, 0);
+}
+
+const fetchUSStatesChartData = () =>
+  tryLoad('US states chart', () => getUsStatesChart('count')) as Promise<
+    USVisitType | undefined
+  >
+
+const fetchLocationStatsData = () =>
+  tryLoad('location stats', () => getLocationStats(null)) as Promise<
+    CountriesResponse | undefined
+  >
+
+const usStatesChartData = (await fetchUSStatesChartData()) ?? [[]]
+const locationStatsData = await fetchLocationStatsData()
+const usTotal = locationStatsData?.find((c: CountryData) => c.name === "United States")?.total ?? 0;
+const allTotal = locationStatsData ? sumTotals(locationStatsData) : 0;
+
+// Calculate total visitors, excluding 'Unknown'
+var totalUSVisitors = 0;
+var unknownVisitors = 0;
+for (var i = 1; i < usStatesChartData!.length; i++) {
+  if (usStatesChartData![i][0] && usStatesChartData![i][0].toLowerCase() === 'unknown') {
+    unknownVisitors += usStatesChartData![i][1] as number;
+  } else {
+    totalUSVisitors += usStatesChartData![i][1] as number;
+  }
+}
+
+var stateCount = 0;
+for (var i = 1; i < usStatesChartData!.length; i++) {
+  if (usStatesChartData![i][0] && usStatesChartData![i][0].toLowerCase() !== 'unknown') {
+    stateCount++;
+  }
+}
+---
+
+
+  <div class="row">
+    <div class="col-lg-12 mb-4">
+        <USVisitCard client:only 
+          data={usStatesChartData!} 
+          visitCount={usTotal} 
+          totalUSVisitors={totalUSVisitors} 
+          unknownVisitors={unknownVisitors} 
+          stateCount={stateCount} />
+      </div>
+      <div class="col-lg-12 mb-4">
+        <AllVisitCard client:only 
+          data={locationStatsData!} 
+          allVisitCount={allTotal} 
+        />
+      </div>
+  </div>

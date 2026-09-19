@@ -1,0 +1,58 @@
+---
+import Layout from '@layouts/AdminLayout.astro'
+import type { FilterRate } from '@admin-types/adminTypes.ts'
+import RatesGrid from '@components/admin/react/rates/RatesGrid'
+import type { Rates } from '@api-v1-types/common.ts'
+import { tryLoad } from '@lib/server/http'
+import { getLatestUsWeekly } from '@lib/server/rates'
+import { getAuthUserByEmail } from '@lib/server/admins'
+import { todayEST } from '@utils/common.ts'
+import { getSession } from 'auth-astro/server'
+
+type UserSession = {
+  id: string
+  name: string
+  email: string
+  role: 'superadmin' | 'admin' | 'user'
+  provider: 'google' | 'github' | 'linkedin' | 'microsoft' | 'apple'
+  image: string
+  createdAt: string
+  updatedAt: string
+} 
+
+const session = await getSession(Astro.request)
+
+const fetchLatestWeekRates = () =>
+  tryLoad('latest rates', getLatestUsWeekly) as Promise<Rates | null | undefined>
+
+const fetchUserData = () =>
+  tryLoad('dashboard user', async () => {
+    const email = session?.user?.email
+    return email ? getAuthUserByEmail(email) : undefined
+  }) as Promise<UserSession | undefined>
+
+const latestRates = await fetchLatestWeekRates()
+const week: string = latestRates?.week || todayEST
+
+const page = Astro.url.searchParams.get('page')
+const size = Astro.url.searchParams.get('size')
+const sort = Astro.url.searchParams.get('sort')
+const order = Astro.url.searchParams.get('order')
+const start = Astro.url.searchParams.get('start')
+const end = Astro.url.searchParams.get('end')
+
+const filter: FilterRate = {
+  size: size ? parseInt(size) : 10,
+  page: page ? parseInt(page) : 1,
+  start: start && start.trim() !== '' ? start.trim() : null,
+  end: end && end.trim() !== '' ? end.trim() : null,
+  order: order && order.trim() !== '' ? order.toLowerCase() as 'asc' | 'desc' : null,
+  sort: sort && sort.trim() !== '' ? sort.toLowerCase() as 'newest' | 'oldest' | 'lowest' | 'highest' : null,
+}
+
+const userData = await fetchUserData()
+---
+
+<Layout title="WMR | Rates">
+  <RatesGrid client:only filter={filter} date={week} role={userData?.role} />
+</Layout>
