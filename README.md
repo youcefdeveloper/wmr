@@ -60,6 +60,121 @@ npm run dev                  # http://localhost:4321
 | `npm run db:import-mysql` | Copy the Symfony MySQL data into the local database (needs `MYSQL_URL`) |
 | `npm run db:import-mysql:vercel` | Copy the Symfony MySQL data into the Vercel database (needs `MYSQL_URL`) |
 | `npm run import:rates` | Import new Freddie Mac weeks and notify app users (`-- --no-push` to skip) |
+| — | The same import runs weekly on Vercel Cron: `GET /api/cron/import-rates` |
+| `npm run push:test` | Send one test push to a single device (`-- --list` to pick one) |
+| `npm run push:test:vercel` | The same, reading `.env.vercel` |
+
+## Scheduled rates import
+
+Replaces the Symfony cron `php bin/console app:import-excel`. Both ways import
+the weeks that are missing from the database and notify app users about the
+newest one (at most once per week).
+
+**On Vercel (default).** `vercel.json` schedules
+`GET /api/cron/import-rates` every Thursday at 17:30 UTC — after Freddie Mac's
+Thursday publication, in both EST and EDT. Re-running is harmless: weeks that
+are already stored are skipped.
+
+Two things are required before the schedule does anything:
+
+1. **`vercel.json` must be committed and deployed to production.** Crons are
+   registered from the deployed build; preview deployments ignore them.
+2. **`CRON_SECRET` must exist on the project** (see
+   [Vercel environment variables](#vercel-environment-variables)):
+
+   ```sh
+   grep '^CRON_SECRET=' .env.local | cut -d= -f2- \
+     | vercel env add CRON_SECRET production,preview --project wmr --sensitive
+   ```
+
+Vercel Cron sends it as `Authorization: Bearer <secret>`; without it the route
+answers 401 on every run. Cron can only issue `GET` and cannot send custom
+headers, which is why this route uses a bearer token rather than the
+`X-API-KEY` the other endpoints expect.
+
+The endpoint takes `?push=no` (import without notifying) and `?url=` (another
+workbook). Change the time by editing `schedule` in `vercel.json` (UTC).
+Registered crons and their last/next run are listed under **Project →
+Settings → Cron Jobs**.
+
+On Hobby plans crons fire at most once per day and the actual time can drift
+up to ~59 minutes from the schedule; Pro runs them to the minute.
+
+Trigger it by hand:
+
+```sh
+curl -H "Authorization: Bearer $CRON_SECRET" \
+  "https://<host>/api/cron/import-rates?push=no"
+```
+
+**On a server (cron/Forge)**, run the same import from the command line:
+
+```sh
+cd /path/to/wmr-fullstack && npm run import:rates        # --no-push to skip notifications
+```
+
+## Testing a push notification
+
+`POST /api/v1/push-notification` and `npm run import:rates` both broadcast to
+**every** registered device. To try a notification safely, send to one device:
+
+```sh
+npm run push:test -- --list                              # registered devices
+npm run push:test -- --device-id <uuid> --body "Hello"
+npm run push:test -- --token "ExponentPushToken[…]" --platform android
+```
+
+`--title`, `--subtitle` and `--body` are optional. The script resolves exactly
+one token (and fails if a device has more than one), sends it through the same
+code path as the broadcast, then polls Expo's `getReceipts` to report whether
+the device actually received it — `DeviceNotRegistered` means the token is
+stale and the app needs to be opened once to re-register.
+
+Use `npm run push:test:vercel` to read `.env.vercel` instead. Either way the
+tokens come from a real database, so pick a device you own.
+
+## Vercel environment variables
+
+This app deploys to the **`wmr`** project (`weeklymortgagerates.vercel.app`).
+The older `weekly-mortgage-rates` project is the previous Symfony-era
+front end — it has no `DATABASE_URL` and nothing here should be added to it.
+
+`vercel env` commands act on the *linked* project (`.vercel/project.json`),
+which is easy to get wrong. Pass `--project` to be explicit:
+
+```sh
+vercel env ls --project wmr
+vercel env add CRON_SECRET production,preview --project wmr --sensitive
+```
+
+Environments are comma-separated; the project's other variables are set on
+`Production, Preview`. Values can come from stdin instead of a prompt, which
+keeps them out of shell history:
+
+```sh
+grep '^CRON_SECRET=' .env.local | cut -d= -f2- \
+  | vercel env add CRON_SECRET production,preview --project wmr --sensitive
+```
+
+Add `--force` to replace a variable that already exists on the same target.
+
+**Two things to know before changing variables:**
+
+- `vercel env pull` only *downloads*. There is no push command — going from a
+  local file to Vercel means one `vercel env add` per variable.
+- `--sensitive` stores the value as a Secret, which **can never be read back**.
+  `vercel env pull` writes `[SENSITIVE]` placeholders for those, so deleting
+  one loses it permanently unless it is also stored locally. Use
+  `--no-sensitive` for values worth recovering later.
+
+To refresh the local copy of the deployed configuration:
+
+```sh
+vercel env pull .env.vercel --environment=production
+```
+
+That overwrites the file, including the local-only `DATABASE_URL_UNPOOLED`
+and `MYSQL_URL` lines, so back it up first and merge them back.
 
 ## Migrating to Postgres on Vercel
 

@@ -14,7 +14,9 @@
     "db:studio": "drizzle-kit studio",
     "db:import-mysql": "tsx --env-file=.env.local scripts/migrate-from-mysql.ts",
     "db:import-mysql:vercel": "tsx --env-file=.env.vercel scripts/migrate-from-mysql.ts",
-    "import:rates": "tsx --env-file=.env.local scripts/import-rates.ts"
+    "import:rates": "tsx --env-file=.env.local scripts/import-rates.ts",
+    "push:test": "tsx --env-file=.env.local scripts/test-push.ts",
+    "push:test:vercel": "tsx --env-file=.env.vercel scripts/test-push.ts"
   },
   "dependencies": {
     "@astrojs/react": "^5.0.7",

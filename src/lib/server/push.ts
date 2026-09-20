@@ -153,27 +153,31 @@ export type BroadcastResult = {
   failedBatches: number
 }
 
+/** A push token plus the platform of the device it belongs to. */
+export type PushRecipient = { token: string; platform: string }
+
+/** Expo returns one ticket per message, in request order. */
+export type ExpoTicket = {
+  status?: string
+  id?: string
+  message?: string
+  details?: { error?: string }
+}
+
 /**
- * Sends a notification to every registered iOS/Android push token. Android
- * has no subtitle, so it's appended to the title there.
+ * Sends one notification to the given recipients, in batches. Non-mobile
+ * platforms are skipped. Android has no subtitle, so it's appended to the
+ * title there.
  */
-export async function broadcastPushNotification(
+export async function sendPushNotification(
+  recipients: PushRecipient[],
   title: string,
   subtitle: string,
   body: string,
-): Promise<BroadcastResult> {
-  const tokens = await db
-    .select({
-      token: pushTokens.token,
-      platform: sql<string>`min(${devices.platform})`,
-    })
-    .from(pushTokens)
-    .innerJoin(devices, eq(devices.id, pushTokens.userId))
-    .groupBy(pushTokens.token)
-
+): Promise<BroadcastResult & { tickets: ExpoTicket[] }> {
   const messages: ExpoMessage[] = []
   let skipped = 0
-  for (const { token, platform } of tokens) {
+  for (const { token, platform } of recipients) {
     if (platform !== 'ios' && platform !== 'android') {
       skipped++
       continue
@@ -190,6 +194,7 @@ export async function broadcastPushNotification(
   }
 
   let failedBatches = 0
+  const tickets: ExpoTicket[] = []
   for (let i = 0; i < messages.length; i += EXPO_BATCH_SIZE) {
     const batch = messages.slice(i, i + EXPO_BATCH_SIZE)
     try {
@@ -204,6 +209,7 @@ export async function broadcastPushNotification(
         failedBatches++
         logger.error({ status: res.status, result }, 'Expo push batch failed')
       } else {
+        if (Array.isArray(result?.data)) tickets.push(...result.data)
         logger.info({ count: batch.length, result }, 'Expo push batch sent')
       }
     } catch (err) {
@@ -212,5 +218,36 @@ export async function broadcastPushNotification(
     }
   }
 
-  return { recipients: messages.length, skipped, failedBatches }
+  return { recipients: messages.length, skipped, failedBatches, tickets }
+}
+
+/** Every registered push token, one row per token. */
+export function listPushRecipients() {
+  return db
+    .select({
+      token: pushTokens.token,
+      platform: sql<string>`min(${devices.platform})`,
+    })
+    .from(pushTokens)
+    .innerJoin(devices, eq(devices.id, pushTokens.userId))
+    .groupBy(pushTokens.token)
+}
+
+/**
+ * Sends a notification to every registered iOS/Android push token.
+ */
+export async function broadcastPushNotification(
+  title: string,
+  subtitle: string,
+  body: string,
+): Promise<BroadcastResult> {
+  const tokens = await listPushRecipients()
+  // Destructured so the tickets stay internal: this is a public API response.
+  const { recipients, skipped, failedBatches } = await sendPushNotification(
+    tokens,
+    title,
+    subtitle,
+    body,
+  )
+  return { recipients, skipped, failedBatches }
 }

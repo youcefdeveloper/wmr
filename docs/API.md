@@ -96,8 +96,13 @@ can exist only once (409).
 | POST | `/push-notification` | Broadcast `{ title?, subtitle, body }` to every iOS/Android device |
 
 The import only adds missing weeks. With `push=yes` it notifies users about
-the newest week, once per week. The same import runs from the command line
-with `npm run import:rates`.
+the newest week, once per week.
+
+The same import also runs on a schedule at `GET /api/cron/import-rates`
+(outside `/api/v1`). It is authenticated with `Authorization: Bearer
+$CRON_SECRET` instead of an API key, because Vercel Cron cannot send custom
+headers, and accepts `?push=no` and `?url=`. From the command line:
+`npm run import:rates`.
 
 ### Devices (mobile app installs)
 
