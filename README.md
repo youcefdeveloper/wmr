@@ -94,22 +94,90 @@ answers 401 on every run. Cron can only issue `GET` and cannot send custom
 headers, which is why this route uses a bearer token rather than the
 `X-API-KEY` the other endpoints expect.
 
-The endpoint takes `?push=no` (import without notifying) and `?url=` (another
-workbook). Change the time by editing `schedule` in `vercel.json` (UTC).
-Registered crons and their last/next run are listed under **Project →
-Settings → Cron Jobs**.
+Change the time by editing `schedule` in `vercel.json` (UTC).
 
 On Hobby plans crons fire at most once per day and the actual time can drift
 up to ~59 minutes from the schedule; Pro runs them to the minute.
 
-Trigger it by hand:
+### Checking that it runs
 
 ```sh
-curl -H "Authorization: Bearer $CRON_SECRET" \
-  "https://<host>/api/cron/import-rates?push=no"
+vercel crons ls --project wmr                    # registered path + schedule
+vercel logs --environment production --project wmr
 ```
 
-**On a server (cron/Forge)**, run the same import from the command line:
+**Project → Settings → Cron Jobs** in the dashboard is the only place with run
+*history* (last run, next run, status). The conclusive check is the data
+itself: after a run, `import_metadata.last_notified_week` and the newest row
+in `weekly_data` reflect whatever Freddie Mac published.
+
+### Triggering it by hand
+
+The route is an ordinary endpoint, so it can be called at any time — this is
+the same code path the schedule uses:
+
+```sh
+SECRET=$(grep '^CRON_SECRET=' .env.local | cut -d= -f2-)
+curl -s -H "Authorization: Bearer $SECRET" \
+  "https://weeklymortgagerates.vercel.app/api/cron/import-rates?push=no"
+```
+
+Reading the secret from `.env.local` keeps it out of shell history. The route
+also accepts `X-CRON-SECRET: <secret>` for callers that cannot set an
+`Authorization` header.
+
+| Parameter | Effect |
+|:--|:--|
+| `?push=no` | Import without notifying devices — use while testing |
+| `?url=<xlsx>` | Import from a different workbook |
+| *(none)* | Import and notify if a newer week arrived |
+
+Re-running is safe: stored weeks are skipped and `last_notified_week` caps
+notifications at one per week. Without `?push=no`, though, a genuinely new
+week fans out to every registered device.
+
+### Running the schedule outside Vercel
+
+Useful when the Hobby once-per-day cap is limiting, or to keep scheduling
+independent of the host. Delete the `crons` block from `vercel.json` and
+redeploy to avoid running the import twice.
+
+**GitHub Actions** — free, allows finer intervals, and `workflow_dispatch`
+adds a "Run workflow" button. Store the secret under *Settings → Secrets and
+variables → Actions*:
+
+```yaml
+# .github/workflows/import-rates.yml
+name: Import rates
+on:
+  schedule:
+    - cron: '15 12 * * *'
+  workflow_dispatch:
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -fsS --retry 3 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://weeklymortgagerates.vercel.app/api/cron/import-rates"
+```
+
+GitHub's scheduler is best-effort and can lag 5–15 minutes under load.
+
+**An external cron service** (cron-job.org, EasyCron, Cronitor) works the same
+way, and adds failure alerting. Use the `X-CRON-SECRET` header if the plan
+does not allow a custom `Authorization` header.
+
+**A server's crontab:**
+
+```cron
+15 12 * * * curl -fsS -H "Authorization: Bearer $CRON_SECRET" "https://weeklymortgagerates.vercel.app/api/cron/import-rates" >> /var/log/wmr-import.log 2>&1
+```
+
+**Or skip HTTP entirely.** On a machine with the repo checked out, this runs
+the same `importAndNotify` function directly against the database, with no
+serverless timeout to worry about:
 
 ```sh
 cd /path/to/wmr-fullstack && npm run import:rates        # --no-push to skip notifications

@@ -42,9 +42,21 @@ export const GET: APIRoute = async ({ request, url }) => {
       { imported: result.newRates.length, notification: result.notification },
       'Scheduled rates import finished',
     )
-    return new Response(JSON.stringify(result), {
-      headers: { 'Content-Type': 'application/json' },
-    })
+    // A summary, not the rows: a first import backfills every week since 1971,
+    // and cron runners abort responses over a size limit. The weeks themselves
+    // are in the log line above.
+    const weeks = result.newRates.map((r) => r.date)
+    return new Response(
+      JSON.stringify({
+        success: result.success,
+        imported: result.imported,
+        count: weeks.length,
+        firstWeek: weeks[0] ?? null,
+        lastWeek: weeks[weeks.length - 1] ?? null,
+        notification: result.notification,
+      }),
+      { headers: { 'Content-Type': 'application/json' } },
+    )
   } catch (err) {
     logger.error({ err }, 'Scheduled rates import failed')
     return new Response(
