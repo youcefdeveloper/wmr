@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/api/cron/import-rates",
-      "schedule": "*/5 * * * *"
+      "schedule": "15 12 * * *"
     }
   ]
 }

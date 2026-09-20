@@ -71,9 +71,11 @@ the weeks that are missing from the database and notify app users about the
 newest one (at most once per week).
 
 **On Vercel (default).** `vercel.json` schedules
-`GET /api/cron/import-rates` every Thursday at 17:30 UTC — after Freddie Mac's
-Thursday publication, in both EST and EDT. Re-running is harmless: weeks that
-are already stored are skipped.
+`GET /api/cron/import-rates` daily at 12:15 UTC — 8:15 a.m. Eastern while EDT
+is in effect, 7:15 a.m. once the clocks go back, since cron schedules are
+always UTC and do not observe daylight saving. Freddie Mac publishes on
+Thursdays, so most runs find nothing new; re-running is harmless because weeks
+already stored are skipped and users are notified at most once per week.
 
 Two things are required before the schedule does anything:
 
