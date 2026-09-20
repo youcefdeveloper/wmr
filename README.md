@@ -63,6 +63,7 @@ npm run dev                  # http://localhost:4321
 | — | The same import runs weekly on Vercel Cron: `GET /api/cron/import-rates` |
 | `npm run push:test` | Send one test push to a single device (`-- --list` to pick one) |
 | `npm run push:test:vercel` | The same, reading `.env.vercel` |
+| `npm run env:sync` | Replace a Vercel project's env vars with a local env file (dry run; `-- --apply` to execute) |
 
 ## Scheduled rates import
 
@@ -245,6 +246,38 @@ vercel env pull .env.vercel --environment=production
 
 That overwrites the file, including the local-only `DATABASE_URL_UNPOOLED`
 and `MYSQL_URL` lines, so back it up first and merge them back.
+
+### Syncing a whole env file to a project
+
+`npm run env:sync` replaces a project's variables with the contents of a local
+env file — it removes every existing variable, then adds every variable in the
+file to Production and Preview. It is a dry run unless `--apply` is passed:
+
+```sh
+npm run env:sync                                    # print the plan
+npm run env:sync -- --apply
+npm run env:sync -- --file .env.local --project wmr --apply
+```
+
+Defaults: `--file .env.vercel`, `--project wmr`, stored as Config. Pass
+`--sensitive` to store Secrets instead — but then `vercel env pull` can no
+longer read them back, and the file becomes the only copy.
+
+`VERCEL_*`, `NX_*` and `TURBO_*` are skipped (the platform injects them and
+rejects the reserved names), as are `MYSQL_URL`, `DATABASE_URL_UNPOOLED` and
+`PUBLIC_BACKEND_URL` — the first two are local-only and would point production
+at a developer's machine, and the third belongs to the old project.
+
+**The script refuses to run if the project has a variable the file does not**,
+before deleting anything. Otherwise a sync from an incomplete file quietly
+drops variables: the file is the source of truth, so anything missing from it
+is gone after the wipe.
+
+A sync changes nothing that is already deployed. Redeploy afterwards:
+
+```sh
+vercel redeploy --project wmr
+```
 
 ## Migrating to Postgres on Vercel
 
