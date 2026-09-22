@@ -9,6 +9,9 @@ import { consumeRateLimit } from './rate-limit'
 import { notifyAdmins, type DeviceEvent } from './admin-notify'
 import { waitUntil } from '@vercel/functions'
 
+// Longest the app's registration waits for dashboard notifications.
+const NOTIFY_WAIT_MS = 3000
+
 export const PLATFORMS = ['ios', 'android', 'web', 'macos', 'windows'] as const
 
 const DEVICE_ID_RE = /^[A-Fa-f0-9-]{36}$/
@@ -144,9 +147,16 @@ export async function registerPushToken(
     return { isNew, device }
   })
 
-  // After the response, so the app never waits on push services. Outside
-  // Vercel there is no request context and the promise simply runs.
-  waitUntil(notifyAdmins(event.isNew ? 'new' : 'returning', event.device))
+  // Sent before answering the app: on Vercel, work left running after the
+  // response isn't reliably finished, and dashboard notifications for real
+  // visits never arrived. Capped so a slow push service can't hold the app
+  // up; waitUntil covers anything still running past the cap.
+  const notifying = notifyAdmins(event.isNew ? 'new' : 'returning', event.device)
+  waitUntil(notifying)
+  await Promise.race([
+    notifying,
+    new Promise((resolve) => setTimeout(resolve, NOTIFY_WAIT_MS)),
+  ])
 
   return { success: true }
 }
