@@ -17,6 +17,8 @@
     "import:rates": "tsx --env-file=.env.local scripts/import-rates.ts",
     "push:test": "tsx --env-file=.env.local scripts/test-push.ts",
     "push:test:vercel": "tsx --env-file=.env.vercel scripts/test-push.ts",
+    "notify:subs": "tsx --env-file=.env.local scripts/notify-subscriptions.ts",
+    "notify:subs:vercel": "tsx --env-file=.env.vercel scripts/notify-subscriptions.ts",
     "env:sync": "./scripts/sync-vercel-env.sh"
   },
   "dependencies": {

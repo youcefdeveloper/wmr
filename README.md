@@ -243,6 +243,12 @@ vercel logs --project wmr --environment production --since 1h --query "Admin not
 - Choices are the `notify_new_users` / `notify_returning_users` columns on
   `auth_user`; browsers are rows in `admin_push_subscription`. A browser that
   revokes permission is removed on the next send.
+- A browser keeps one push subscription across sign-ins, and sends follow the
+  account that owns it, not the one signed in. Opening **My Account** claims
+  it for the current account, so its switches govern that browser; until then
+  a browser can still be notifying for an account that used it earlier.
+  `npm run notify:subs` (`notify:subs:vercel` for production) lists every
+  browser with the account and switches behind it.
 - `public/admin-sw.js` shows them and opens the device's page on click. It is
   registered with scope `/dashboard/` and never touches the public site.
 - Needs `PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT`

@@ -55,7 +55,13 @@ const NotificationSettings = () => {
         const data = await call<Prefs & { vapidPublicKey: string | null }>(API)
         setPrefs({ newUsers: data.newUsers, returningUsers: data.returningUsers })
         setVapidKey(data.vapidPublicKey)
-        setSubscribed(!!(await currentSubscription()))
+        // A browser keeps one push subscription across sign-ins, and the
+        // server sends to whichever account owns it. Claim it for the account
+        // signed in now, so these switches govern what this browser receives
+        // instead of silently leaving it on an account signed in here before.
+        const sub = await currentSubscription()
+        if (sub) await call(`${API}/subscription`, 'POST', sub.toJSON())
+        setSubscribed(!!sub)
       } catch (err) {
         setMessage({ kind: 'error', text: `Couldn't load notification settings: ${(err as Error).message}` })
       }
