@@ -12,9 +12,11 @@ type MyAccountProps = {
     };
     expires: string;
   };
+  /** Only admins see the Settings and Devices shortcuts. */
+  canManage: boolean;
 }
 
-const MyAccount = ({ session }: MyAccountProps) => {
+const MyAccount = ({ session, canManage }: MyAccountProps) => {
     const { theme } = useAdminThemeStore()
     const [loading, setLoading] = useState(false)
 
@@ -171,6 +173,8 @@ const MyAccount = ({ session }: MyAccountProps) => {
                     Quick Actions
                 </h5>
                 <div className="d-grid gap-2">
+                    {canManage && (
+                    <>
                     <a href="/dashboard/settings" className="btn btn-outline-dark">
                     <i className="bi bi-gear me-2"></i>
                     Settings
@@ -179,6 +183,8 @@ const MyAccount = ({ session }: MyAccountProps) => {
                     <i className="bi bi-phone me-2"></i>
                     Manage Devices
                     </a>
+                    </>
+                    )}
                     <a href="/dashboard/rates" className="btn btn-outline-dark">
                     <i className="bi bi-graph-up me-2"></i>
                     View Rates
