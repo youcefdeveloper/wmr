@@ -2,7 +2,7 @@
 import Layout from '@layouts/AdminLayout.astro'
 import MyAccount from '@components/admin/react/MyAccount'
 import { getSession } from 'auth-astro/server'
-import { canAccess } from '@lib/server/access'
+import { canAccess, canUseNotifications } from '@lib/server/access'
 
 const session = await getSession(Astro.request)
 
@@ -18,5 +18,6 @@ if (!session) {
     client:only="react"
     session={session}
     canManage={canAccess(Astro.locals.role ?? null, '/dashboard/settings')}
+    canNotify={canUseNotifications(Astro.locals.role ?? null)}
   />
 </Layout>
