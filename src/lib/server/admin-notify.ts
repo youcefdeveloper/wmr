@@ -93,42 +93,45 @@ export async function notifyAdmins(event: AdminEvent, device: DeviceEvent) {
       .from(adminPushSubscriptions)
       .innerJoin(authUsers, eq(authUsers.id, adminPushSubscriptions.authUserId))
       .where(and(eq(authUsers.isActive, true), eq(pref, true)))
-    if (!subs.length) return
-
-    const what = `${device.model || 'Unknown model'} · ${platformName(device.platform)}`
-    // Second line: where the user is and the app's language. The location
-    // uses the dashboard's lookup so the two always agree; private or
-    // unresolvable addresses are left out rather than shown vaguely.
-    const location = getLocationFromIp(device.ipAddress)
-    const about = [
-      location && location !== 'Local Network' ? location : null,
-      getLanguageName(device.lang),
-    ]
-      .filter(Boolean)
-      .join(' · ')
-    const aboutLine = about ? `\n${about}` : ''
-    let payload: Payload
-    if (event === 'new') {
-      payload = {
-        title: 'New user',
-        body: what + aboutLine,
-        url: `/dashboard/devices/${device.id}`,
-      }
-    } else {
-      // Registration itself is visit #1; every history row is a return.
-      const [{ n }] = await db
-        .select({ n: count() })
-        .from(userUpdateHistory)
-        .where(eq(userUpdateHistory.userId, device.id))
-      payload = {
-        title: 'Returning user',
-        body: `${what} · visit ${n + 1}${aboutLine}`,
-        url: `/dashboard/devices/${device.id}`,
-      }
+    if (!subs.length) {
+      logger.info({ event, deviceId: device.id, recipients: 0 }, 'Admin notification: no subscribers')
+      return
     }
-    await deliver(
+
+    // Line 1: "SM-G991U1 (Android) | Arabic | Visit 187"
+    // Line 2: "Columbus, Ohio, United States"
+    // Parts that are unknown are left out rather than shown as placeholders.
+    const deviceText = `${device.model || 'Unknown model'} (${platformName(device.platform)})`
+    const language = getLanguageName(device.lang)
+    // Registration itself is visit 1; every history row is a return.
+    const visit =
+      event === 'returning'
+        ? (
+            await db
+              .select({ n: count() })
+              .from(userUpdateHistory)
+              .where(eq(userUpdateHistory.userId, device.id))
+          )[0].n + 1
+        : null
+    const firstLine = [deviceText, language, visit ? `Visit ${visit}` : null]
+      .filter(Boolean)
+      .join(' | ')
+    // Same lookup as the dashboard, so the two always agree; private or
+    // unresolvable addresses get no location line.
+    const location = getLocationFromIp(device.ipAddress)
+    const secondLine = location && location !== 'Local Network' ? `\n${location}` : ''
+
+    const sent = await deliver(
       subs.map((s) => s.sub),
-      payload,
+      {
+        title: event === 'new' ? 'New user' : 'Returning user',
+        body: firstLine + secondLine,
+        url: `/dashboard/devices/${device.id}`,
+      },
+    )
+    logger.info(
+      { event, deviceId: device.id, recipients: subs.length, sent },
+      'Admin notification sent',
     )
   } catch (err) {
     logger.error({ err, event, deviceId: device.id }, 'Admin notification failed')
