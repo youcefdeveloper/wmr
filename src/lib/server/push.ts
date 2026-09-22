@@ -137,6 +137,8 @@ export async function registerPushToken(
       id: userId,
       platform: existing?.platform ?? platform,
       model: model ?? existing?.model ?? null,
+      // The app reports its public IP; the request's own IP is the fallback.
+      ipAddress: ipAddress && isIP(ipAddress) ? ipAddress : clientIp,
     }
     return { isNew, device }
   })
