@@ -9,6 +9,7 @@ import {
   type AdminPushSubscription,
 } from './db'
 import { env } from './env'
+import { getLocationFromIp } from './geo'
 
 /**
  * Browser notifications for dashboard accounts (web push), sent when the
@@ -71,6 +72,8 @@ export type DeviceEvent = {
   id: number
   platform: string
   model: string | null
+  /** The IP the dashboard records for this visit, for the location line. */
+  ipAddress: string | null
 }
 
 /**
@@ -90,9 +93,17 @@ export async function notifyAdmins(event: AdminEvent, device: DeviceEvent) {
     if (!subs.length) return
 
     const what = `${device.model || 'Unknown model'} · ${platformName(device.platform)}`
+    // Same lookup the dashboard uses, so the two always agree. Private
+    // addresses and unknown IPs get no location line rather than a vague one.
+    const location = getLocationFromIp(device.ipAddress)
+    const place = location && location !== 'Local Network' ? `\n${location}` : ''
     let payload: Payload
     if (event === 'new') {
-      payload = { title: 'New user', body: what, url: `/dashboard/devices/${device.id}` }
+      payload = {
+        title: 'New user',
+        body: what + place,
+        url: `/dashboard/devices/${device.id}`,
+      }
     } else {
       // Registration itself is visit #1; every history row is a return.
       const [{ n }] = await db
@@ -101,7 +112,7 @@ export async function notifyAdmins(event: AdminEvent, device: DeviceEvent) {
         .where(eq(userUpdateHistory.userId, device.id))
       payload = {
         title: 'Returning user',
-        body: `${what} · visit ${n + 1}`,
+        body: `${what} · visit ${n + 1}${place}`,
         url: `/dashboard/devices/${device.id}`,
       }
     }
