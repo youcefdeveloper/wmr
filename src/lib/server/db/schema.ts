@@ -10,6 +10,7 @@ import {
   jsonb,
   pgTable,
   serial,
+  text,
   timestamp,
   varchar,
 } from 'drizzle-orm/pg-core'
@@ -118,7 +119,30 @@ export const authUsers = pgTable('auth_user', {
     .$type<Provider[]>()
     .notNull()
     .default(sql`'[]'::jsonb`),
+  // Browser notifications, chosen in My Account.
+  notifyNewUsers: boolean('notify_new_users').notNull().default(false),
+  notifyReturningUsers: boolean('notify_returning_users')
+    .notNull()
+    .default(false),
 })
+
+// Browsers a dashboard account has allowed to receive notifications. One
+// account can have several (laptop, phone); the endpoint identifies each.
+export const adminPushSubscriptions = pgTable(
+  'admin_push_subscription',
+  {
+    id: serial('id').primaryKey(),
+    authUserId: integer('auth_user_id')
+      .notNull()
+      .references(() => authUsers.id, { onDelete: 'cascade' }),
+    endpoint: text('endpoint').notNull().unique(),
+    p256dh: varchar('p256dh', { length: 255 }).notNull(),
+    auth: varchar('auth', { length: 255 }).notNull(),
+    userAgent: varchar('user_agent', { length: 255 }),
+    createdAt: createdAt(),
+  },
+  (t) => [index('idx_admin_push_subscription_user').on(t.authUserId)],
+)
 
 export const importMetadata = pgTable('import_metadata', {
   key: varchar('meta_key', { length: 100 }).primaryKey(),
@@ -141,3 +165,4 @@ export type Device = typeof devices.$inferSelect
 export type PushToken = typeof pushTokens.$inferSelect
 export type UserUpdateHistory = typeof userUpdateHistory.$inferSelect
 export type AuthUser = typeof authUsers.$inferSelect
+export type AdminPushSubscription = typeof adminPushSubscriptions.$inferSelect
