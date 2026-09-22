@@ -2,6 +2,7 @@
 import Layout from '@layouts/AdminLayout.astro'
 import MyAccount from '@components/admin/react/MyAccount'
 import { getSession } from 'auth-astro/server'
+import { canAccess } from '@lib/server/access'
 
 const session = await getSession(Astro.request)
 
@@ -13,5 +14,9 @@ if (!session) {
 <Layout title="WMR | My Account">
   <!-- <h4 class="mb-4 fw-bold">My Account</h4> -->
 
-  <MyAccount client:only="react" session={session} />
+  <MyAccount
+    client:only="react"
+    session={session}
+    canManage={canAccess(Astro.locals.role ?? null, '/dashboard/settings')}
+  />
 </Layout>
