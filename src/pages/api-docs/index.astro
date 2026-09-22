@@ -1,7 +1,7 @@
 ---
 import { canViewApiDocs } from '@lib/server/docs-access'
 
-// Open in development; in production only for signed-in dashboard users.
+// Only for signed-in dashboard users.
 if (!(await canViewApiDocs(Astro.request))) {
   return Astro.redirect('/auth/login')
 }

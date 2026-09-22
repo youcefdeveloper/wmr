@@ -7,12 +7,30 @@ type DeviceChartProps = {
   platform: 'ios' | 'android',
 }
 
+// Space per bar. Google Charts drops any axis label that would overlap its
+// neighbour, so a fixed height hides every other model name once the list
+// grows; at 11px text each label needs roughly this much.
+const ROW_HEIGHT = 18
+const CHART_AREA = {
+  left: 200,
+  right: 20,
+  top: 10,
+  bottom: 90, // Increase bottom margin to fit rotated labels
+}
+// Bar thickness, independent of the row spacing above.
+const BAR_THICKNESS = 12
+const MIN_HEIGHT = 300
+
 export default function DeviceChart({ data, platform }: DeviceChartProps) {
   const { theme } = useAdminThemeStore()
 
   // Material chart options
   const numModels = Array.isArray(data) && data.length > 1 ? data.length - 1 : 0;
   const vAxisTitle = `Device Models (${numModels})`;
+  const height = Math.max(
+    MIN_HEIGHT,
+    numModels * ROW_HEIGHT + CHART_AREA.top + CHART_AREA.bottom,
+  )
   const optionsLight: GoogleChartOptions = {
     chart: {
       title: '',
@@ -46,12 +64,8 @@ export default function DeviceChart({ data, platform }: DeviceChartProps) {
         italic: false,
       },
     },
-    chartArea: {
-      left: 200,
-      right: 20,
-      top: 10,
-      bottom: 90, // Increase bottom margin to fit rotated labels
-    },
+    chartArea: CHART_AREA,
+    bar: { groupWidth: String(BAR_THICKNESS) },
     colors: platform === 'ios' ? ['#0284c7'] : ['#ff7f0e'],
     // legend: 'none',
     legend: {
@@ -102,12 +116,8 @@ export default function DeviceChart({ data, platform }: DeviceChartProps) {
         italic: false,
       },
     },
-    chartArea: {
-      left: 200,
-      right: 20,
-      top: 10,
-      bottom: 90, // Increase bottom margin to fit rotated labels
-    },
+    chartArea: CHART_AREA,
+    bar: { groupWidth: String(BAR_THICKNESS) },
     colors: platform === 'ios' ? ['#0284c7'] : ['#ff7f0e'],
     // legend: 'none',
     legend: {
@@ -134,7 +144,7 @@ export default function DeviceChart({ data, platform }: DeviceChartProps) {
       <div className="chart-scroll">
         <Chart
           chartType="BarChart"
-          height={1000}
+          height={height}
           width="100%"
           data={data}
           options={theme === 'light' ? optionsLight : optionsDark}

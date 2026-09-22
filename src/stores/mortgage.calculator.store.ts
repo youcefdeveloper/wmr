@@ -205,6 +205,12 @@ const useMortgageCalculatorStore = create(
         storage: createJSONStorage(() => AsyncStorage),
         onRehydrateStorage: () => (state) => {
           state?.setHasHydrated(true)
+          // Layout.astro keeps the page hidden until this is set, so the
+          // islands never show their English server render to an Arabic
+          // visitor. Set even when rehydration failed, so the page still shows.
+          if (typeof window !== 'undefined') {
+            ;(window as { __wmrLangReady?: boolean }).__wmrLangReady = true
+          }
         },
       },
     ),

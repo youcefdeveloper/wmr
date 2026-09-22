@@ -8,9 +8,90 @@ import TitleTag from '@components/react/TitleTag'
 const { title } = Astro.props
 ---
 
-<html lang="ar" dir="rtl">
+<!-- Server defaults match the stores' defaults (English); the script below
+     switches to the visitor's stored language before anything is painted. -->
+<html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
+    <script is:inline>
+      // Language and theme live in localStorage, which the server cannot see,
+      // so the HTML arrives in the defaults (English, light) and the React
+      // islands only switch after they hydrate and read storage. Apply both
+      // here, before first paint, and keep the content hidden until every
+      // island has hydrated in the stored language.
+      ;(function () {
+        var root = document.documentElement
+        root.classList.add('wmr-loading')
+
+        function stored(key) {
+          try {
+            var raw = localStorage.getItem(key)
+            return raw ? JSON.parse(raw).state : null
+          } catch (e) {
+            return null
+          }
+        }
+
+        var lang = (stored('mortgage_calculator_storage') || {}).lang
+        if (lang === 'ar' || lang === 'en') {
+          root.lang = lang
+          root.dir = lang === 'ar' ? 'rtl' : 'ltr'
+        }
+        // 'dark' is the theme store's default when nothing is stored.
+        var theme = (stored('theme_storage') || {}).theme || 'dark'
+        if (theme === 'dark') root.classList.add('wmr-dark')
+
+        // Capped so a failed island request can never leave the page blank.
+        var MAX_WAIT_MS = 5000
+        var start = Date.now()
+
+        function settled() {
+          return (
+            document.readyState === 'complete' &&
+            // Set by the language store once it has read localStorage.
+            window.__wmrLangReady === true &&
+            // A deferred server island is pending while its script is present.
+            !document.querySelector('script[data-island-id]') &&
+            // Astro removes `ssr` once an island has hydrated.
+            !document.querySelector('astro-island[ssr]')
+          )
+        }
+
+        function reveal() {
+          // Two frames, so islands that re-rendered in the stored language
+          // have painted before the content is shown.
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              root.classList.remove('wmr-loading')
+            })
+          })
+        }
+
+        var timer = setInterval(function () {
+          var elapsed = Date.now() - start
+          if (!settled() && elapsed < MAX_WAIT_MS) return
+          clearInterval(timer)
+          if (!document.fonts || elapsed >= MAX_WAIT_MS) return reveal()
+          Promise.race([
+            document.fonts.ready,
+            new Promise(function (resolve) {
+              setTimeout(resolve, MAX_WAIT_MS - elapsed)
+            }),
+          ]).then(reveal, reveal)
+        }, 50)
+      })()
+    </script>
+    <style is:inline>
+      /* Opacity rather than visibility: descendants cannot override it. */
+      html.wmr-loading body > * {
+        opacity: 0;
+      }
+      /* The body only turns dark once ThemeToggle hydrates, so paint the dark
+         background from here meanwhile instead of a white screen. */
+      html.wmr-loading.wmr-dark {
+        background-color: rgba(71, 71, 71, 1);
+      }
+    </style>
     <!-- Favicon and Touch Icons -->
     <link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
     <link href="/favicon-48x48.png" rel="icon" sizes="48x48" type="image/png"/>

@@ -5,9 +5,9 @@ REST API under `/api/v1`, used by the mobile app and the admin dashboard.
 The full reference (every parameter, schema and response, with "Try it out")
 is the OpenAPI spec:
 
-- **Swagger UI:** `/api-docs` (open in development; in production, sign in to
-  the dashboard first)
-- **Spec:** `/api-docs/openapi.json`, source in
+- **Swagger UI:** `/api-docs` (sign in to the dashboard first; logged-out
+  visitors are redirected to the login page)
+- **Spec:** `/api-docs/openapi.json` (404 when logged out), source in
   [`src/lib/openapi.ts`](../src/lib/openapi.ts)
 
 This page covers the conventions and gives an overview.
