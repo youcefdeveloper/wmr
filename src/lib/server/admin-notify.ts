@@ -10,6 +10,7 @@ import {
 } from './db'
 import { env } from './env'
 import { getLocationFromIp } from './geo'
+import { getLanguageName } from './languages'
 
 /**
  * Browser notifications for dashboard accounts (web push), sent when the
@@ -74,6 +75,8 @@ export type DeviceEvent = {
   model: string | null
   /** The IP the dashboard records for this visit, for the location line. */
   ipAddress: string | null
+  /** The app's language code, e.g. `ar`, when it reported a supported one. */
+  lang: string | null
 }
 
 /**
@@ -93,15 +96,22 @@ export async function notifyAdmins(event: AdminEvent, device: DeviceEvent) {
     if (!subs.length) return
 
     const what = `${device.model || 'Unknown model'} · ${platformName(device.platform)}`
-    // Same lookup the dashboard uses, so the two always agree. Private
-    // addresses and unknown IPs get no location line rather than a vague one.
+    // Second line: where the user is and the app's language. The location
+    // uses the dashboard's lookup so the two always agree; private or
+    // unresolvable addresses are left out rather than shown vaguely.
     const location = getLocationFromIp(device.ipAddress)
-    const place = location && location !== 'Local Network' ? `\n${location}` : ''
+    const about = [
+      location && location !== 'Local Network' ? location : null,
+      getLanguageName(device.lang),
+    ]
+      .filter(Boolean)
+      .join(' · ')
+    const aboutLine = about ? `\n${about}` : ''
     let payload: Payload
     if (event === 'new') {
       payload = {
         title: 'New user',
-        body: what + place,
+        body: what + aboutLine,
         url: `/dashboard/devices/${device.id}`,
       }
     } else {
@@ -112,7 +122,7 @@ export async function notifyAdmins(event: AdminEvent, device: DeviceEvent) {
         .where(eq(userUpdateHistory.userId, device.id))
       payload = {
         title: 'Returning user',
-        body: `${what} · visit ${n + 1}${place}`,
+        body: `${what} · visit ${n + 1}${aboutLine}`,
         url: `/dashboard/devices/${device.id}`,
       }
     }
