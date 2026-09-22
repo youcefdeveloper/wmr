@@ -213,9 +213,10 @@ browser asks for permission. Every browser that should show them is enabled
 separately ("Enable on this browser"), and **Send test** checks the whole path.
 
 Each notification names the device model and platform, the visit number for
-returning users, and the city, region and country — resolved from the IP the
-app reports, with the same GeoLite2 lookup the dashboard uses. Private and
-unresolvable addresses get no location line.
+returning users, and on a second line the city, region and country plus the
+app's language. The location is resolved from the IP the app reports, with
+the same GeoLite2 lookup the dashboard uses; private and unresolvable
+addresses are left out, as are unsupported language codes.
 
 - Sent from `registerPushToken` after the app has its response
   (`waitUntil`), so a slow or failing push service never delays or breaks
