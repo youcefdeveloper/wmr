@@ -15,9 +15,11 @@ type MyAccountProps = {
   };
   /** Only admins see the Settings and Devices shortcuts. */
   canManage: boolean;
+  /** Only admins take part in notifications, so only they see the card. */
+  canNotify: boolean;
 }
 
-const MyAccount = ({ session, canManage }: MyAccountProps) => {
+const MyAccount = ({ session, canManage, canNotify }: MyAccountProps) => {
     const { theme } = useAdminThemeStore()
     const [loading, setLoading] = useState(false)
 
@@ -214,6 +216,7 @@ const MyAccount = ({ session, canManage }: MyAccountProps) => {
                 </div>
             </div>
 
+            {canNotify && (
             <div className={`card ${theme === 'light' ? 'card-light' : 'card-dark'} mt-4`}>  
                 <div className="card-body">
                 <h5 className="card-title fw-semibold d-flex align-items-center gap-2" style={{marginBottom: '2rem'}}>
@@ -222,6 +225,7 @@ const MyAccount = ({ session, canManage }: MyAccountProps) => {
                 <NotificationSettings />
                 </div>
             </div>
+            )}
             </div>
         </div>
     )

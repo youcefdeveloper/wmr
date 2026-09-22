@@ -1,10 +1,12 @@
-import { and, count, eq } from 'drizzle-orm'
+import { and, count, eq, inArray } from 'drizzle-orm'
 import webpush from 'web-push'
 import { logger } from '@helpers/logger.ts'
+import { canUseNotifications } from './access'
 import {
   adminPushSubscriptions,
   authUsers,
   db,
+  ROLES,
   userUpdateHistory,
   type AdminPushSubscription,
 } from './db'
@@ -19,6 +21,9 @@ import { getLanguageName } from './languages'
  */
 
 export type AdminEvent = 'new' | 'returning'
+
+/** The roles notifications are for; the `user` role is never a recipient. */
+const NOTIFY_ROLES = ROLES.filter(canUseNotifications)
 
 type Payload = { title: string; body: string; url: string }
 
@@ -92,7 +97,15 @@ export async function notifyAdmins(event: AdminEvent, device: DeviceEvent) {
       .select({ sub: adminPushSubscriptions })
       .from(adminPushSubscriptions)
       .innerJoin(authUsers, eq(authUsers.id, adminPushSubscriptions.authUserId))
-      .where(and(eq(authUsers.isActive, true), eq(pref, true)))
+      // Role as well as preference: an account demoted to `user` keeps the
+      // subscriptions and opt-ins it had as an admin, and must stop here.
+      .where(
+        and(
+          eq(authUsers.isActive, true),
+          inArray(authUsers.role, NOTIFY_ROLES),
+          eq(pref, true),
+        ),
+      )
     if (!subs.length) {
       logger.info({ event, deviceId: device.id, recipients: 0 }, 'Admin notification: no subscribers')
       return

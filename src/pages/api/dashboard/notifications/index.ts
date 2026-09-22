@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 import { authUsers, db } from '@lib/server/db'
 import { env } from '@lib/server/env'
 import { pushConfigured } from '@lib/server/admin-notify'
+import { canUseNotifications } from '@lib/server/access'
 import {
   currentAccount,
   jsonResponse,
@@ -13,6 +14,9 @@ import {
 export const GET: APIRoute = async ({ request }) => {
   const account = await currentAccount(request)
   if (!account) return jsonResponse({ error: 'Unauthorized' }, 401)
+  if (!canUseNotifications(account.role)) {
+    return jsonResponse({ error: 'Forbidden' }, 403)
+  }
   return jsonResponse({
     newUsers: account.notifyNewUsers,
     returningUsers: account.notifyReturningUsers,
@@ -27,6 +31,9 @@ export const GET: APIRoute = async ({ request }) => {
 export const PUT: APIRoute = async ({ request }) => {
   const account = await currentAccount(request)
   if (!account) return jsonResponse({ error: 'Unauthorized' }, 401)
+  if (!canUseNotifications(account.role)) {
+    return jsonResponse({ error: 'Forbidden' }, 403)
+  }
 
   const body = await readJsonBody<{ newUsers?: unknown; returningUsers?: unknown }>(request)
   if (!body) return jsonResponse({ error: 'Expected a JSON body' }, 400)

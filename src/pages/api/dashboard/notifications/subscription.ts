@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro'
 import { and, eq } from 'drizzle-orm'
 import { adminPushSubscriptions, db } from '@lib/server/db'
+import { canUseNotifications } from '@lib/server/access'
 import {
   currentAccount,
   jsonResponse,
@@ -24,6 +25,9 @@ const isHttps = (url: string) => {
 export const POST: APIRoute = async ({ request }) => {
   const account = await currentAccount(request)
   if (!account) return jsonResponse({ error: 'Unauthorized' }, 401)
+  if (!canUseNotifications(account.role)) {
+    return jsonResponse({ error: 'Forbidden' }, 403)
+  }
 
   const body = await readJsonBody<Subscription>(request)
   const endpoint = body?.endpoint
@@ -57,6 +61,9 @@ export const POST: APIRoute = async ({ request }) => {
 export const DELETE: APIRoute = async ({ request }) => {
   const account = await currentAccount(request)
   if (!account) return jsonResponse({ error: 'Unauthorized' }, 401)
+  if (!canUseNotifications(account.role)) {
+    return jsonResponse({ error: 'Forbidden' }, 403)
+  }
 
   const body = await readJsonBody<{ endpoint?: unknown }>(request)
   if (typeof body?.endpoint !== 'string') {

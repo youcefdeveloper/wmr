@@ -27,3 +27,12 @@ export function canAccess(role: Role | null, pathname: string): boolean {
   if (role === 'admin' || role === 'superadmin') return true
   return !USER_BLOCKED.some((p) => pathname === p || pathname.startsWith(`${p}/`))
 }
+
+/**
+ * Whether `role` takes part in browser notifications at all: choosing them,
+ * subscribing a browser, and receiving them. Notifications are about app
+ * users and link to `/dashboard/devices`, which the `user` role can't open.
+ */
+export function canUseNotifications(role: Role | null): boolean {
+  return role === 'admin' || role === 'superadmin'
+}

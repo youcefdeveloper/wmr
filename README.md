@@ -206,10 +206,13 @@ tokens come from a real database, so pick a device you own.
 
 ## Dashboard notifications
 
-Dashboard accounts can get browser notifications when the mobile app
-registers a **new user** or a **returning user** opens the app. Each account
-turns them on under **My Account → Notifications**; the first time, the
-browser asks for permission. Every browser that should show them is enabled
+Admin and superadmin accounts can get browser notifications when the mobile
+app registers a **new user** or a **returning user** opens the app. They turn
+them on under **My Account → Notifications**; the first time, the browser asks
+for permission. The `user` role takes no part in them: it sees no
+Notifications card, and the endpoints under `/api/dashboard/notifications`
+answer 403 — the notifications link to `/dashboard/devices`, which that role
+can't open. Every browser that should show them is enabled
 separately ("Enable on this browser"), and **Send test** checks the whole path.
 
 Each notification reads, for example:

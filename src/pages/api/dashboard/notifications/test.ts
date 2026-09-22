@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro'
 import { pushConfigured, sendTestNotification } from '@lib/server/admin-notify'
+import { canUseNotifications } from '@lib/server/access'
 import { consumeRateLimit } from '@lib/server/rate-limit'
 import { currentAccount, jsonResponse } from '@lib/server/dashboard-account'
 
@@ -7,6 +8,9 @@ import { currentAccount, jsonResponse } from '@lib/server/dashboard-account'
 export const POST: APIRoute = async ({ request }) => {
   const account = await currentAccount(request)
   if (!account) return jsonResponse({ error: 'Unauthorized' }, 401)
+  if (!canUseNotifications(account.role)) {
+    return jsonResponse({ error: 'Forbidden' }, 403)
+  }
   if (!request.headers.get('content-type')?.includes('application/json')) {
     return jsonResponse({ error: 'Expected a JSON body' }, 400)
   }
