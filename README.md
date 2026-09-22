@@ -212,14 +212,30 @@ turns them on under **My Account → Notifications**; the first time, the
 browser asks for permission. Every browser that should show them is enabled
 separately ("Enable on this browser"), and **Send test** checks the whole path.
 
-Each notification names the device model and platform, the visit number for
-returning users, and on a second line the city, region and country plus the
-app's language. The location is resolved from the IP the app reports, with
-the same GeoLite2 lookup the dashboard uses; private and unresolvable
-addresses are left out, as are unsupported language codes.
+Each notification reads, for example:
 
-- Sent from `registerPushToken` after the app has its response
-  (`waitUntil`), so a slow or failing push service never delays or breaks
+```text
+Returning user
+SM-G991U1 (Android) | Arabic | Visit 187
+Columbus, Ohio, United States
+```
+
+The location is resolved from the IP the app reports, with the same GeoLite2
+lookup the dashboard uses. Parts that are unknown are left out: private or
+unresolvable addresses get no location line, and unsupported language codes
+no language. New-user notifications have no visit number.
+
+They are sent before the app gets its registration response (capped at 3s),
+because work left running after the response is not reliably finished on
+Vercel. Every send logs `Admin notification sent` with the recipient and
+sent counts:
+
+```sh
+vercel logs --project wmr --environment production --since 1h --query "Admin notification"
+```
+
+- Sent from `registerPushToken`, waited on for at most 3s before the app gets
+  its response; a failing push service is logged and never breaks
   registration. Logic: `src/lib/server/admin-notify.ts`.
 - Choices are the `notify_new_users` / `notify_returning_users` columns on
   `auth_user`; browsers are rows in `admin_push_subscription`. A browser that
