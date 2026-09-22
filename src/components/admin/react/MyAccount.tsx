@@ -1,6 +1,7 @@
 import { useAdminThemeStore } from "@stores/admin/theme.store";
 import { DEFAULT_AVATAR } from "@utils/constants";
 import { useEffect, useState } from "react";
+import NotificationSettings from "./NotificationSettings";
 
 type MyAccountProps = {
   session: {
@@ -218,14 +219,7 @@ const MyAccount = ({ session, canManage }: MyAccountProps) => {
                 <h5 className="card-title fw-semibold d-flex align-items-center gap-2" style={{marginBottom: '2rem'}}>
                     Notifications
                 </h5>
-                <div className="form-check form-switch">
-                    <input className="form-check-input" type="checkbox" id="newUserNotification" />
-                    <label className="form-check-label small" htmlFor="newUserNotification">New User Events</label>
-                </div>
-                <div className="form-check form-switch mt-3">
-                    <input className="form-check-input" type="checkbox" id="userReturnedNotification" disabled/>
-                    <label className="form-check-label small" htmlFor="userReturnedNotification">Returning User Events</label>
-                </div>
+                <NotificationSettings />
                 </div>
             </div>
             </div>

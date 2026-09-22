@@ -16,4 +16,12 @@ export const env = {
     astro?.EXPO_API_BASE_URL ??
     process.env.EXPO_API_BASE_URL ??
     'https://api.expo.dev/v2',
+  // Browser notifications for dashboard accounts. Unset keys turn them off.
+  VAPID_PUBLIC_KEY:
+    astro?.PUBLIC_VAPID_PUBLIC_KEY ?? process.env.PUBLIC_VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY: astro?.VAPID_PRIVATE_KEY ?? process.env.VAPID_PRIVATE_KEY,
+  VAPID_SUBJECT:
+    astro?.VAPID_SUBJECT ??
+    process.env.VAPID_SUBJECT ??
+    'mailto:contact@weeklymortgagerates.org',
 } as const

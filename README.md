@@ -204,6 +204,29 @@ stale and the app needs to be opened once to re-register.
 Use `npm run push:test:vercel` to read `.env.vercel` instead. Either way the
 tokens come from a real database, so pick a device you own.
 
+## Dashboard notifications
+
+Dashboard accounts can get browser notifications when the mobile app
+registers a **new user** or a **returning user** opens the app. Each account
+turns them on under **My Account → Notifications**; the first time, the
+browser asks for permission. Every browser that should show them is enabled
+separately ("Enable on this browser"), and **Send test** checks the whole path.
+
+- Sent from `registerPushToken` after the app has its response
+  (`waitUntil`), so a slow or failing push service never delays or breaks
+  registration. Logic: `src/lib/server/admin-notify.ts`.
+- Choices are the `notify_new_users` / `notify_returning_users` columns on
+  `auth_user`; browsers are rows in `admin_push_subscription`. A browser that
+  revokes permission is removed on the next send.
+- `public/admin-sw.js` shows them and opens the device's page on click. It is
+  registered with scope `/dashboard/` and never touches the public site.
+- Needs `PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT`
+  (see `.env.example`). Without the keys, nothing is sent. Changing the key
+  pair invalidates every existing browser subscription.
+
+Works in Chrome, Edge, Firefox and desktop Safari. On iPhone and iPad, web
+notifications only work for a site added to the Home Screen.
+
 ## Vercel environment variables
 
 This app deploys to the **`wmr`** project (`weeklymortgagerates.vercel.app`).

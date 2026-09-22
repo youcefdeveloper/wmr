@@ -6,6 +6,8 @@ import { env } from './env'
 import { HttpError, badRequest } from './http'
 import { isSupportedLanguage } from './languages'
 import { consumeRateLimit } from './rate-limit'
+import { notifyAdmins, type DeviceEvent } from './admin-notify'
+import { waitUntil } from '@vercel/functions'
 
 export const PLATFORMS = ['ios', 'android', 'web', 'macos', 'windows'] as const
 
@@ -55,7 +57,7 @@ export async function registerPushToken(
   const ipAddress = typeof input.ipAddress === 'string' ? input.ipAddress : null
   const lang = typeof input.lang === 'string' ? input.lang : null
 
-  await db.transaction(async (tx) => {
+  const event = await db.transaction(async (tx) => {
     const now = new Date()
     const [existing] = await tx
       .select()
@@ -64,6 +66,7 @@ export async function registerPushToken(
       .limit(1)
 
     let userId: number
+    let isNew: boolean
     if (!existing) {
       const invalid: { field: string; message: string }[] = []
       if (!(PLATFORMS as readonly string[]).includes(platform)) {
@@ -90,8 +93,10 @@ export async function registerPushToken(
         })
         .returning({ id: devices.id })
       userId = created.id
+      isNew = true
     } else {
       userId = existing.id
+      isNew = false
       await tx.insert(userUpdateHistory).values({
         userId,
         updatedAt: now,
@@ -127,7 +132,18 @@ export async function registerPushToken(
         updatedAt: now,
       })
     }
+
+    const device: DeviceEvent = {
+      id: userId,
+      platform: existing?.platform ?? platform,
+      model: model ?? existing?.model ?? null,
+    }
+    return { isNew, device }
   })
+
+  // After the response, so the app never waits on push services. Outside
+  // Vercel there is no request context and the promise simply runs.
+  waitUntil(notifyAdmins(event.isNew ? 'new' : 'returning', event.device))
 
   return { success: true }
 }
