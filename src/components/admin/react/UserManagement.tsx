@@ -360,7 +360,7 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
             <h4 className="fw-bold mb-0">Accounts ({meta.totalItems})</h4>
             {!isUser && (<a
               href="#"
-              className="btn btn-outline-dark btn-hover pe-3"
+              className="btn btn-outline-dark pe-3"
               onClick={(e) => {
                 e.preventDefault()
                 setShowAddModal(true)
