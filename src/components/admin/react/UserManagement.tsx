@@ -3,7 +3,7 @@ import type { Filter } from '@admin-types/adminTypes.ts'
 import Pagination from '@components/admin/react/Pagination'
 import CurrentFilter from '@components/admin/react/users/CurrentFilter'
 import { client } from '@config/client'
-import { formatDateTime, parseQueryParams, updateQueryParams } from '@utils/common.ts'
+import { formatDateTime, hasActiveFilters, parseQueryParams, updateQueryParams } from '@utils/common.ts'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { useAdminThemeStore } from '@stores/admin/theme.store'
@@ -281,23 +281,9 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
 
   const clearAllFilters = () => updateQueryParams({}, true)
 
-  // Determine if Clear button should show
+  // Any filter in the URL, so one added later needs no change here.
   const queryParams = new URLSearchParams(window.location.search)
-  const pageParam = queryParams.get('page') || '1'
-  const sizeParam = queryParams.get('size') || '10'
-  const showClearButton =
-    window.location.search &&
-    (pageParam !== '1' ||
-      sizeParam !== '10' ||
-      queryParams.get('role') ||
-      queryParams.get('provider') ||
-      queryParams.get('active') ||
-      queryParams.get('start') ||
-      queryParams.get('end') ||
-      queryParams.get('uOrder') ||
-      queryParams.get('eOrder') ||
-      queryParams.get('cOrder') ||
-      queryParams.get('rOrder'))
+  const showClearButton = hasActiveFilters(window.location.search)
 
     // Sorting handlers for table columns
     const handleSort = (key: 'uOrder' | 'eOrder' | 'cOrder' | 'rOrder') => {

@@ -256,6 +256,24 @@ export const __updateQueryParams = (updates: Record<string, string>) => {
   window.location.href = url.toString()
 }
 
+/**
+ * Whether the URL carries anything worth clearing, used to show the Clear
+ * button. Every parameter counts, so a filter added later shows the button
+ * without being listed here; `page` and `size` only count when they differ
+ * from the grid defaults.
+ */
+export function hasActiveFilters(
+  search: string,
+  defaults: Record<string, string> = { page: '1', size: '10' },
+): boolean {
+  for (const [key, value] of new URLSearchParams(search)) {
+    if (value.trim() === '') continue
+    if (defaults[key] === value) continue
+    return true
+  }
+  return false
+}
+
 export function updateQueryParams(params: Record<string, string | null>, clearAll = false) {
   const url = new URL(window.location.href)
   const query = clearAll ? new URLSearchParams() : new URLSearchParams(url.search)
