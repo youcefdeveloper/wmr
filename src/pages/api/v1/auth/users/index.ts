@@ -3,14 +3,17 @@ import {
   pageAuthUsers,
   type AuthUserInput,
 } from '@lib/server/admins'
-import { requireRole } from '@lib/server/auth'
+import { getSessionRole, requireRole } from '@lib/server/auth'
 import { handler, intParam, json, preflight, readJson } from '@lib/server/http'
 
 export const OPTIONS = preflight
 
-export const GET = handler(({ url }) => {
+export const GET = handler(async ({ request, url }) => {
   const q = url.searchParams
   return pageAuthUsers({
+    // Signed in, you see your own rank and below; an API key alone is
+    // unranked and still sees every account.
+    viewer: await getSessionRole(request),
     page: intParam(url, 'page', 1),
     size: intParam(url, 'size', 10),
     role: q.get('role'),

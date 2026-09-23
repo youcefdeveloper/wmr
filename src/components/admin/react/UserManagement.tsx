@@ -40,7 +40,7 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
   const isAdmin = userRole === 'admin'
   const isSuperadmin = userRole === 'superadmin'
 
-  // Helper for Add User modal role
+  // Helper for the New Account modal role
   let addUserDefaultRole: 'superadmin' | 'admin' | 'user' = 'user'
   let addUserRoleReadOnly = false
   if (isAdmin) {
@@ -244,14 +244,21 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
   const confirmDeleteUser = async () => {
     if (!deleteUserId) return
     try {
-      await client.delete(`/api/v1/auth/users/${deleteUserId}`)
+      const { data } = await client.delete(`/api/v1/auth/users/${deleteUserId}`)
+      // Deleting your own account: the session no longer belongs to anyone,
+      // so end it here rather than reloading a page you can't open.
+      if (data?.self) {
+        const { signOut } = await import('auth-astro/client')
+        await signOut()
+        return
+      }
       await fetchUsers()
       setShowDeleteModal(false)
       setDeleteUserId(null)
-      toast.success('User deleted successfully')
+      toast.success('Account deleted successfully')
     } catch (error:any) {
       console.error('Error deleting user:', error)
-      toast.error(error.response?.data?.error || 'Failed to delete user')
+      toast.error(error.response?.data?.error || 'Failed to delete account')
     }
   }
 
@@ -350,7 +357,7 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
       <div className="row">
         <div className="col-md-12">
           <div className="d-flex justify-content-between align-items-center gap-4 order-1 mb-5">
-            <h4 className="fw-bold mb-0">Auth Users ({meta.totalItems})</h4>
+            <h4 className="fw-bold mb-0">Accounts ({meta.totalItems})</h4>
             {!isUser && (<a
               href="#"
               className="btn btn-outline-dark btn-hover pe-3"
@@ -359,7 +366,7 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
                 setShowAddModal(true)
               }}
             >
-              <i className="bi bi-plus-lg btn-icon me-1"></i>New User
+              <i className="bi bi-plus-lg btn-icon me-1"></i>New Account
             </a>)}
           </div>
         </div>
@@ -437,7 +444,7 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
               <div className="d-flex justify-content-start gap-4 mt-md-0 mt-4 mb-4 mb-md-0 order-1">
                 <div className="small">
                   Showing <span className='fw-semibold'>{meta.fromPage}</span> to <span className='fw-semibold'>{meta.toPage}</span> of{' '}
-                  <span className='fw-semibold'>{meta.totalItems}</span> users
+                  <span className='fw-semibold'>{meta.totalItems}</span> accounts
                 </div>
               </div>
             ) : (<div></div>)}
@@ -459,7 +466,7 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
                     <a href="#" className="d-flex justify-content-start align-items-center gap-1"
                        onClick={e => { e.preventDefault(); handleSort('uOrder') }}
                        style={{ cursor: 'pointer', textDecoration: 'none' }}>
-                      <span className="fw-bold">User</span>
+                      <span className="fw-bold">Name</span>
                       <i className={`ms-1 bi bi-arrow-${currentFilter.uOrder === 'asc' ? 'up' : currentFilter.uOrder === 'desc' ? 'down' : 'down-up'}${currentFilter.uOrder ? '' : ' opacity-25'}`}></i>
                     </a>
                   </th>
@@ -493,11 +500,25 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
               </thead>
               <tbody>
               {users.map((user, index) => (
-                <tr key={user.id} style={{ opacity: user.isActive ? 1 : 0.25 }}>
+                <tr
+                  key={user.id}
+                  className={user.email === email ? 'row-current-user' : undefined}
+                  style={{ opacity: user.isActive ? 1 : 0.25 }}
+                >
                   <td className={`small ${user.role === 'superadmin' ? 'fw-bold' : ''}`}>
                     {user.email === email ? 
                       (<>
-                        <img src={image || DEFAULT_AVATAR} alt="Profile" className="rounded-circle" style={{ width: 26, height: 26, objectFit: 'cover' }} />
+                        <img
+                          src={image || DEFAULT_AVATAR}
+                          alt="Profile"
+                          className="rounded-circle"
+                          style={{ width: 26, height: 26, objectFit: 'cover' }}
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null
+                            e.currentTarget.src = DEFAULT_AVATAR
+                          }}
+                        />
                       </>)
                       : (
                         <span className={`ms-1 ${user.role === 'superadmin' ? 'fw-bold' : ''}`}>{index + 1}</span>
@@ -604,7 +625,7 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
                         </a>
                     ) : (user.role === 'superadmin' ? <i className="ms-2 bi bi-star-fill text-dark"></i> : null)}
                     {/* ) : null} */}
-                    {(!isUser) && 
+                    {(!isUser && user.role !== 'superadmin') &&
                     <>
                       <a
                         href="#"
@@ -613,7 +634,7 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
                           e.preventDefault()
                           handleToggleActive(user.id)
                         }}
-                        title={user.isActive ? 'Lock user' : 'Unlock user'}
+                        title={user.isActive ? 'Lock account' : 'Unlock account'}
                       >
                         <i className={`bi bi-${user.isActive ? 'unlock' : 'lock'}`}></i>
                       </a>
@@ -624,7 +645,7 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
                           e.preventDefault()
                           openEditModal(user)
                         }}
-                        title="Edit user"
+                        title="Edit account"
                       >
                         <i className="bi bi-pen"></i>
                       </a>
@@ -635,7 +656,7 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
                           e.preventDefault()
                           handleDeleteUser(user.id)
                         }}
-                        title="Delete user"
+                        title={user.email === email ? 'Delete my account' : 'Delete account'}
                       >
                         <i className="bi bi-trash"></i>
                       </a>
@@ -650,7 +671,7 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
         </div>
       ) : (
         <div className="d-flex justify-content-center py-5">
-          <p className="lead fw-light">No users found.</p>
+          <p className="lead fw-light">No accounts found.</p>
         </div>
       )}
 
@@ -659,7 +680,7 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
         <div className="mt-4">
           <div className="small">
             Showing <span className='fw-semibold'>{meta.fromPage}</span> to <span className='fw-semibold'>{meta.toPage}</span> of{' '}
-            <span className='fw-semibold'>{meta.totalItems}</span> users
+            <span className='fw-semibold'>{meta.totalItems}</span> accounts
           </div>
         </div>
       )}
@@ -682,7 +703,7 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
             <div className="modal-dialog modal-fullscreen-sm-down-- modal-sheet-sm">
               <div className="modal-content">
                 <div className="modal-header d-flex justify-content-between align-items-center">
-                  <h1 className="modal-title fs-5 fw-bold mb-0">Add New User</h1>
+                  <h1 className="modal-title fs-5 fw-bold mb-0">New Account</h1>
                   <a
                     href="#"
                     className="bi bi-x-lg h4 mb-0"
@@ -831,7 +852,7 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
             <div className="modal-dialog modal-fullscreen-sm-down-- modal-sheet-sm">
               <div className="modal-content h-100">
                 <div className="modal-header d-flex justify-content-between align-items-center">
-                  <h1 className="modal-title fs-5 fw-bold mb-0">Edit User</h1>
+                  <h1 className="modal-title fs-5 fw-bold mb-0">Edit Account</h1>
                   <a
                     href="#"
                     className="bi bi-x-lg h4 mb-0"
@@ -978,11 +999,17 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
             <div className="modal-dialog modal-fullscreen-sm-down-- modal-sheet-sm">
               <div className="modal-content">
                 <div className="modal-header d-flex justify-content-between align-items-center">
-                  <h1 className="modal-title fs-5 fw-bold mb-0">Delete User</h1>
+                  <h1 className="modal-title fs-5 fw-bold mb-0">Delete Account</h1>
                   <a href="#" className="bi bi-x-lg h4 mb-0" onClick={e => {e.preventDefault(); setShowDeleteModal(false); setDeleteUserId(null)}}></a>
                 </div>
                 <div className="modal-body">
-                  <p className="lead">Are you sure you want to delete this user?</p>
+                  <p className="lead">Are you sure you want to delete this account?</p>
+                  {users.find(u => u.id === deleteUserId)?.email === email && (
+                    <p className="small mb-0">
+                      <i className="bi bi-exclamation-triangle me-1"></i>
+                      This is your own account: deleting it signs you out.
+                    </p>
+                  )}
                 </div>
                 <div className="modal-footer">
                   <div className="d-flex justify-content-start gap-1 m-0">
@@ -1008,7 +1035,7 @@ const UserManagement = ({ filter, email, image, provider }: UserManagementProps)
                   <a href="#" className="bi bi-x-lg h4 mb-0" onClick={e => {e.preventDefault(); setShowAssignSuperAdminModal(false); setAssignSuperAdminUserId(null)}}></a>
                 </div>
                 <div className="modal-body">
-                  <p className="lead">Are you sure you want to assign this user as Superadmin?</p>
+                  <p className="lead">Are you sure you want to make this account Superadmin?</p>
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-lg btn-modal btn-danger fw-light" onClick={confirmAssignSuperAdmin}>Confirm</button>

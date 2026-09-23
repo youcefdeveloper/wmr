@@ -1,4 +1,15 @@
-import { and, asc, count, desc, eq, gte, lte, sql, type SQL } from 'drizzle-orm'
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  lte,
+  notInArray,
+  sql,
+  type SQL,
+} from 'drizzle-orm'
 import {
   authUsers,
   db,
@@ -19,6 +30,15 @@ import {
 } from './http'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+/**
+ * The roles `viewer` may see: its own rank and everything below it, so an
+ * admin doesn't list the superadmins it isn't allowed to touch anyway.
+ * `ROLES` is ordered most privileged first. A caller with no dashboard
+ * session (an API key alone) is not ranked and sees everything.
+ */
+const visibleRoles = (viewer: Role | null | undefined): Role[] =>
+  viewer ? ROLES.slice(ROLES.indexOf(viewer)) : [...ROLES]
 
 const serialize = (u: AuthUser) => ({
   id: u.id,
@@ -68,6 +88,8 @@ export async function getAuthUser(id: number) {
 export type AuthUsersQuery = {
   page: number
   size: number
+  /** The signed-in account's role, when the request carries a session. */
+  viewer?: Role | null
   role?: string | null
   provider?: string | null
   active?: string | null
@@ -84,6 +106,8 @@ export async function pageAuthUsers(q: AuthUsersQuery) {
   const size = Math.max(1, Math.min(100, q.size))
 
   const filters: SQL[] = []
+  const hidden = ROLES.filter((r) => !visibleRoles(q.viewer).includes(r))
+  if (hidden.length) filters.push(notInArray(authUsers.role, hidden))
   if (q.role) filters.push(eq(authUsers.role, q.role as Role))
   if (q.provider) {
     filters.push(sql`${authUsers.providers} @> ${JSON.stringify([q.provider])}::jsonb`)
@@ -242,7 +266,9 @@ export async function deleteAuthUser(id: number) {
   const user = await findAuthUser(id)
   if (!user) throw notFound('User not found')
   if (user.role === 'superadmin') {
-    throw forbidden('Cannot delete superadmin user')
+    // Holds for the superadmin's own account too: transfer the role first,
+    // so the dashboard is never left without one.
+    throw forbidden('Cannot delete the superadmin account')
   }
   await db.delete(authUsers).where(eq(authUsers.id, id))
   return { message: 'User deleted successfully' }
@@ -260,10 +286,14 @@ export async function listAllowedEmails(): Promise<string[]> {
   return rows.map((r) => r.email)
 }
 
-export async function getAuthInitData() {
+export async function getAuthInitData(viewer?: Role | null) {
   return {
     providers: PROVIDERS.map((p) => ({ name: titleCase(p), value: p })),
-    roles: ROLES.map((r) => ({ name: titleCase(r.replace(/_/g, ' ')), value: r })),
+    // Same rank rule as the list: no filtering by a role you can't see.
+    roles: visibleRoles(viewer).map((r) => ({
+      name: titleCase(r.replace(/_/g, ' ')),
+      value: r,
+    })),
     allowed_emails: (await listAllowedEmails()).join(','),
   }
 }

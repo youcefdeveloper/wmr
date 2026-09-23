@@ -5,11 +5,11 @@ import type { Role } from './db'
  * Pages the `user` role may not open. Each entry also covers everything
  * below it, e.g. `/dashboard/devices/42` and `/api-docs/openapi.json`.
  */
-const USER_BLOCKED = ['/dashboard/settings', '/dashboard/devices', '/api-docs']
+const USER_BLOCKED = ['/dashboard/accounts', '/dashboard/devices', '/api-docs']
 
 /**
  * The dashboard role for a signed-in email. Roles live in `auth_user`, not in
- * the session token, so they reflect changes made in Settings immediately.
+ * the session token, so they reflect changes made in Accounts immediately.
  */
 export async function roleForEmail(
   email: string | null | undefined,
