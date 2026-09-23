@@ -6,7 +6,7 @@ import RatesFilters from '@components/admin/react/rates/RatesFilters.tsx'
 import CurrentFilter from '@components/admin/react/rates/CurrentFilter.tsx'
 import Pagination from '@components/admin/react/Pagination'
 import { client } from '@config/client'
-import { formatDateWithWeekday, parseQueryParamsRates, updateQueryParams } from '@utils/common.ts'
+import { formatDateWithWeekday, hasActiveFilters, parseQueryParamsRates, updateQueryParams } from '@utils/common.ts'
 import type { FilterRate } from '@admin-types/adminTypes.ts'
 import { useAdminThemeStore } from '@stores/admin/theme.store';
 import ImportRateModal from './ImportRateModal';
@@ -98,17 +98,9 @@ function RatesGrid({ filter, date, role }: RatesGridProps) {
     window.history.replaceState({}, '', window.location.pathname)
   }
 
+  // Any filter in the URL, so one added later needs no change here.
   const queryParams = new URLSearchParams(window.location.search)
-  const pageParam = queryParams.get('page') || '1'
-  const sizeParam = queryParams.get('size') || '10'
-  const showClearButton =
-    window.location.search &&
-    (pageParam !== '1' ||
-      sizeParam !== '10' ||
-      queryParams.get('sort') ||
-      queryParams.get('order') ||
-      queryParams.get('start') ||
-      queryParams.get('end'))
+  const showClearButton = hasActiveFilters(window.location.search)
 
   const handleOrderChange = (e: any) => {
     e.preventDefault()
