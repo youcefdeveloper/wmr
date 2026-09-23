@@ -3,7 +3,7 @@ import ResultsSummary from '@components/admin/react/devices/ResultsSummary.tsx'
 import CurrentFilter from '@components/admin/react/devices/CurrentFilter.tsx'
 import Pagination from '@components/admin/react/Pagination'
 import { client } from '@config/client'
-import { formatDateTime, parseQueryParams, updateQueryParams } from '@utils/common.ts'
+import { formatDateTime, hasActiveFilters, parseQueryParams, updateQueryParams } from '@utils/common.ts'
 import type { Filter } from '@admin-types/adminTypes.ts'
 import DeviceUpdatesHistoryFilters from '@components/admin/react/devices/DeviceUpdatesHistoryFilters.tsx'
 
@@ -96,19 +96,9 @@ function DeviceUpdatesHistoryGrid({
 
   const clearAllFilters = () => updateQueryParams({}, true)
 
-  // Determine if Clear button should show
+  // Any filter in the URL, so one added later needs no change here.
   const queryParams = new URLSearchParams(window.location.search)
-  const pageParam = queryParams.get('page') || '1'
-  const sizeParam = queryParams.get('size') || '10'
-  const showClearButton =
-    window.location.search &&
-    (pageParam !== '1' ||
-      sizeParam !== '10' ||
-      queryParams.get('platform') ||
-      queryParams.get('model') ||
-      queryParams.get('start') ||
-      queryParams.get('end') ||
-      queryParams.get('order'))
+  const showClearButton = hasActiveFilters(window.location.search)
 
   const handleSort = (type: 'created' | 'updated') => {
     const currentOrder = type === 'created' ? currentFilter?.order : currentFilter?.uOrder

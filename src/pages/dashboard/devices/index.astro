@@ -45,6 +45,9 @@ const order = Astro.url.searchParams.get('order')
 const start = Astro.url.searchParams.get('start')
 const end = Astro.url.searchParams.get('end')
 const uOrder = Astro.url.searchParams.get('uOrder') // Fetch uOrder parameter
+const visit = Astro.url.searchParams.get('visit')
+const visitBy = Astro.url.searchParams.get('visitBy')
+const vOrder = Astro.url.searchParams.get('vOrder')
 
 // ✅ Apply parameters
 setParam('page', page)
@@ -80,6 +83,11 @@ const filter: Filter = {
   end: end && end.trim() !== '' ? end.trim() : null,
   order: order && order.trim() !== '' ? (order.toLowerCase() as 'asc' | 'desc') : null,
   uOrder: uOrder && uOrder.trim() !== '' ? (uOrder.toLowerCase() as 'asc' | 'desc') : null, // Handle uOrder
+  // The visit filters live in the URL too: without them here the chips and
+  // the sort arrow are missing until the next client-side filter change.
+  visit: visit && visit.trim() !== '' ? (visit.trim() as Filter['visit']) : null,
+  visitBy: visitBy && visitBy.trim() !== '' ? (visitBy.trim() as Filter['visitBy']) : null,
+  vOrder: vOrder && vOrder.trim() !== '' ? (vOrder.toLowerCase() as 'asc' | 'desc') : null,
 }
 
 // console.log('filter?', filter)
