@@ -1777,6 +1777,32 @@ th, td {
         padding: 0 0 20px 0;
     }
 
+    /* A state with many cities makes the map tooltip taller than the phone
+       screen, and .chart-scroll-wrapper-md clips what overflows it. Cap the
+       tooltip and let it scroll on its own instead. */
+    .chart-geo .google-visualization-tooltip {
+        max-height: 50vh;
+        max-width: calc(100vw - 32px);
+        overflow-y: auto;
+        /* Keep the page still while the list scrolls under a finger. */
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        pointer-events: auto;
+    }
+
+    .chart-geo .google-visualization-tooltip::-webkit-scrollbar {
+        width: 4px;
+        border-radius: 4px !important;
+    }
+
+    .chart-geo .google-visualization-tooltip::-webkit-scrollbar-track {
+        border-radius: 4px !important;
+    }
+
+    .chart-geo .google-visualization-tooltip::-webkit-scrollbar-thumb {
+        border-radius: 4px !important;
+    }
+
     .chart-scroll-wrapper-md::-webkit-scrollbar {
         width: 4px;
         height: 4px;
