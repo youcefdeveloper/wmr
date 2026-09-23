@@ -5,6 +5,7 @@ import {
   type AuthUserInput,
 } from '@lib/server/admins'
 import { requireRole } from '@lib/server/auth'
+import { currentAccount } from '@lib/server/dashboard-account'
 import { forbidden, handler, idParam, preflight, readJson } from '@lib/server/http'
 
 export const OPTIONS = preflight
@@ -32,5 +33,10 @@ export const DELETE = handler(async ({ request, params }) => {
     ['superadmin', 'admin'],
     'Forbidden: Only superadmin or admin can delete users.',
   )
-  return deleteAuthUser(idParam(params.id))
+  const id = idParam(params.id)
+  // Deleting your own account ends your access: `self` tells the dashboard
+  // to sign you out instead of refreshing a page you can no longer open.
+  const me = await currentAccount(request)
+  const result = await deleteAuthUser(id)
+  return { ...result, self: me?.id === id }
 })
