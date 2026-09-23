@@ -123,6 +123,19 @@ curl -s -H "Authorization: Bearer $SECRET" \
   "https://weeklymortgagerates.vercel.app/api/cron/import-rates?push=no"
 ```
 
+Against the dev server, with the same secret and `jq` for a readable summary:
+
+```sh
+SECRET=$(grep '^CRON_SECRET=' .env.local | cut -d= -f2-)
+curl -s -H "Authorization: Bearer $SECRET" \
+  "http://localhost:4321/api/cron/import-rates?push=no" | jq
+```
+
+Keep `?push=no` while testing locally unless you have limited who a broadcast
+reaches (see [Limiting a local broadcast](#limiting-a-local-broadcast)): a
+local database copied from production holds real device tokens, and Expo
+delivers on the token regardless of which machine sent it.
+
 Reading the secret from `.env.local` keeps it out of shell history. The route
 also accepts `X-CRON-SECRET: <secret>` for callers that cannot set an
 `Authorization` header.
@@ -203,6 +216,42 @@ stale and the app needs to be opened once to re-register.
 
 Use `npm run push:test:vercel` to read `.env.vercel` instead. Either way the
 tokens come from a real database, so pick a device you own.
+
+### Limiting a local broadcast
+
+A broadcast reaches every row in `push_token`: `listPushRecipients()` joins
+`user` only to read the platform, and never looks at `user.notify`. So a local
+database imported from production sends to every real phone in it — importing
+rates with **Notify Subscribers** ticked, or `POST /api/v1/push-notification`,
+reaches all of them.
+
+To keep only your own devices (here ids `2` and `239`), delete the other
+tokens. Back them up first; restoring is a single command:
+
+```sh
+DB=$(grep -E '^DATABASE_URL=' .env.local | cut -d= -f2- | tr -d '"')
+
+# Backup
+pg_dump "$DB" --data-only --table=push_token > /tmp/push_token_backup.sql
+
+# Delete every token but those two
+psql "$DB" -c 'DELETE FROM push_token WHERE user_id NOT IN (2, 239);'
+
+# Verify: two rows, one per device
+psql "$DB" -c 'SELECT p.user_id, u.platform, u.model, left(p.token, 22) AS token
+               FROM push_token p JOIN "user" u ON u.id = p.user_id
+               ORDER BY p.user_id;'
+
+# Restore
+psql "$DB" -f /tmp/push_token_backup.sql
+```
+
+`"user"` is quoted because that is the devices table and a reserved word in
+Postgres. Delete from `push_token`, never from `"user"`: both `push_token` and
+`user_update_history` cascade on `user.id`, so dropping devices also erases the
+visit history behind the dashboard charts and the `Visit N` line in
+notifications. A device that opens the app against this database registers its
+token again, which is what you want for the two you kept.
 
 ## Dashboard notifications
 
@@ -628,16 +677,13 @@ x-vercel-cache: MISS
 x-vercel-id: iad1::iad1::kqxsq-1751243605783-05c66566bde5
 ```
 
-### Rest user and push_token tables
+### Resetting the user and push_token tables
+
+Wipes every device and its tokens, ids counting from 1 again. `TRUNCATE`
+cascades to `push_token` and `user_update_history`.
 
 ```sql
-DELETE
-FROM push_token;
-ALTER TABLE push_token AUTO_INCREMENT = 1;
-
-DELETE
-FROM user;
-ALTER TABLE user AUTO_INCREMENT = 1;
+TRUNCATE TABLE "user" RESTART IDENTITY CASCADE;
 ```
 
 ## Auth
