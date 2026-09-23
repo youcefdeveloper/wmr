@@ -13,7 +13,7 @@ type MyAccountProps = {
     };
     expires: string;
   };
-  /** Only admins see the Settings and Devices shortcuts. */
+  /** Only admins see the Accounts and Devices shortcuts. */
   canManage: boolean;
   /** Only admins take part in notifications, so only they see the card. */
   canNotify: boolean;
@@ -59,6 +59,11 @@ const MyAccount = ({ session, canManage, canNotify }: MyAccountProps) => {
                         height="100"
                         className="rounded-circle"
                         style={{objectFit: 'cover'}}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                            e.currentTarget.onerror = null
+                            e.currentTarget.src = DEFAULT_AVATAR
+                        }}
                     />
                     </div>
                 </div>
@@ -178,9 +183,9 @@ const MyAccount = ({ session, canManage, canNotify }: MyAccountProps) => {
                 <div className="d-grid gap-2">
                     {canManage && (
                     <>
-                    <a href="/dashboard/settings" className="btn btn-outline-dark">
-                    <i className="bi bi-gear me-2"></i>
-                    Settings
+                    <a href="/dashboard/accounts" className="btn btn-outline-dark">
+                    <i className="bi bi-people me-2"></i>
+                    Accounts
                     </a>
                     <a href="/dashboard/devices" className="btn btn-outline-dark">
                     <i className="bi bi-phone me-2"></i>

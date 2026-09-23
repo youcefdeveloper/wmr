@@ -41,6 +41,8 @@ const DEFAULT_AVATAR = 'data:image/jpeg;base64,/9j/2wBDAAYEBQYFBAYGBQYHBwYIChAKC
                 height="32"
                 class="rounded-circle"
                 style="object-fit: cover;"
+                referrerpolicy="no-referrer"
+                data-avatar-fallback
               />
             ) : (
               <img
@@ -56,8 +58,8 @@ const DEFAULT_AVATAR = 'data:image/jpeg;base64,/9j/2wBDAAYEBQYFBAYGBQYHBwYIChAKC
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" href="/dashboard/my-account">My Account</a></li>
-            {can('/dashboard/settings') && <li><a class="dropdown-item" href="/dashboard/settings">Settings</a></li>}
             <li><hr class="dropdown-divider" /></li>
+            {can('/dashboard/accounts') && <li><a class="dropdown-item" href="/dashboard/accounts">Accounts</a></li>}
             {can('/dashboard/devices') && <li><a class="dropdown-item" href="/dashboard/devices">Devices</a></li>}
             <li><a class="dropdown-item" href="/dashboard/rates">Rates</a></li>
              <li><a class="dropdown-item" href="/dashboard/visits">Visits</a></li>
@@ -85,4 +87,17 @@ const DEFAULT_AVATAR = 'data:image/jpeg;base64,/9j/2wBDAAYEBQYFBAYGBQYHBwYIChAKC
   const { signOut } = await import('auth-astro/client')
   const logoutBtn = document.querySelector('#logout')
   if (logoutBtn) logoutBtn.onclick = () => signOut()
+</script>
+
+<!-- A provider's avatar host can refuse or be blocked; show the placeholder
+     rather than a broken image. Covers an image that already failed before
+     this ran, which is why `complete` is checked as well. -->
+<script is:inline define:vars={{ fallback: DEFAULT_AVATAR }}>
+  for (const img of document.querySelectorAll('img[data-avatar-fallback]')) {
+    const swap = () => {
+      img.src = fallback
+    }
+    if (img.complete && img.naturalWidth === 0) swap()
+    else img.addEventListener('error', swap, { once: true })
+  }
 </script>

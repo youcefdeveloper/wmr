@@ -202,28 +202,37 @@ const NotificationSettings = () => {
         </label>
       </div>
 
-      <div className="small mt-4 d-flex flex-wrap align-items-center gap-3">
+      <div className="small mt-4">
         {subscribed ? (
           <>
-            <span className="text-secondary">
-              <i className="bi bi-bell me-1"></i>This browser receives notifications.
+            <span>
+              <i className="bi bi-bell" style={{ fontSize: 16, position: 'relative', top: 2, marginRight: 6 }}></i>
+              This browser receives notifications.
             </span>
-            <button type="button" className="btn btn-link btn-sm p-0" disabled={busy} onClick={sendTest}>
-              Send test
-            </button>
-            <button type="button" className="btn btn-link btn-sm p-0" disabled={busy} onClick={disableHere}>
-              Stop on this browser
-            </button>
+            <div className="d-flex flex-wrap gap-2 mt-3">
+              <button type="button" className="btn btn-outline-dark flex-grow-1 text-nowrap" disabled={busy} onClick={sendTest}>
+                <i className="bi bi-send me-2"></i>
+                Send test
+              </button>
+              <button type="button" className="btn btn-outline-dark flex-grow-1 text-nowrap" disabled={busy} onClick={disableHere}>
+                <i className="bi bi-bell-slash me-2"></i>
+                Stop on this browser
+              </button>
+            </div>
           </>
         ) : (
           anyOn && (
             <>
-              <span className="text-secondary">
-                <i className="bi bi-bell-slash me-1"></i>This browser isn't set up.
+              <span>
+                <i className="bi bi-bell-slash" style={{ fontSize: 16, position: 'relative', top: 2, marginRight: 6 }}></i>
+                This browser isn't set up.
               </span>
-              <button type="button" className="btn btn-link btn-sm p-0" disabled={busy} onClick={enableHere}>
-                Enable on this browser
-              </button>
+              <div className="d-flex flex-wrap gap-2 mt-3">
+                <button type="button" className="btn btn-outline-dark flex-grow-1 text-nowrap" disabled={busy} onClick={enableHere}>
+                  <i className="bi bi-bell me-2"></i>
+                  Enable on this browser
+                </button>
+              </div>
             </>
           )
         )}

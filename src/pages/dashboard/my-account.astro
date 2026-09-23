@@ -17,7 +17,7 @@ if (!session) {
   <MyAccount
     client:only="react"
     session={session}
-    canManage={canAccess(Astro.locals.role ?? null, '/dashboard/settings')}
+    canManage={canAccess(Astro.locals.role ?? null, '/dashboard/accounts')}
     canNotify={canUseNotifications(Astro.locals.role ?? null)}
   />
 </Layout>
