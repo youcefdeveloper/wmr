@@ -122,6 +122,13 @@ const Assistant = () => {
     if (open) inputRef.current?.focus()
   }, [open])
 
+  // On phones the window covers the page; assistant.css stops the page from
+  // scrolling behind it while this class is set.
+  useEffect(() => {
+    document.documentElement.classList.toggle('wmr-chat-open', open)
+    return () => document.documentElement.classList.remove('wmr-chat-open')
+  }, [open])
+
   // Grow the input with its text, up to the CSS max-height.
   useEffect(() => {
     const el = inputRef.current
