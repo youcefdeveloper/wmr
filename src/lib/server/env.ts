@@ -24,4 +24,11 @@ export const env = {
     astro?.VAPID_SUBJECT ??
     process.env.VAPID_SUBJECT ??
     'mailto:contact@weeklymortgagerates.org',
+  // OpenAI key for the rates assistant (/api/v1/agent). Unset turns it off.
+  OPENAI_API_KEY: astro?.OPENAI_API_KEY ?? process.env.OPENAI_API_KEY,
+  OPENAI_MODEL:
+    astro?.OPENAI_MODEL ?? process.env.OPENAI_MODEL ?? 'gpt-4.1-mini',
+  // Only for reasoning models (gpt-5.x, o-series); others reject it.
+  OPENAI_REASONING_EFFORT:
+    astro?.OPENAI_REASONING_EFFORT ?? process.env.OPENAI_REASONING_EFFORT,
 } as const
