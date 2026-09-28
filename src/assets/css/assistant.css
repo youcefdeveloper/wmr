@@ -92,6 +92,26 @@
   animation: wmr-chat-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* Maximized: wide and nearly full height, still anchored to the button. */
+.wmr-chat-panel {
+  transition: width 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.wmr-chat-panel.is-expanded {
+  width: min(820px, calc(100vw - 48px));
+  height: calc(100vh - 124px);
+}
+
+.wmr-chat-panel.is-expanded .wmr-chat-body {
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.wmr-chat-panel.is-expanded .wmr-chat-msg {
+  max-width: 72%;
+}
+
 @keyframes wmr-chat-in {
   from {
     opacity: 0;
@@ -110,6 +130,13 @@
     bottom: 84px;
     width: auto;
     height: calc(100vh - 110px);
+  }
+  .wmr-chat-panel.is-expanded {
+    width: auto;
+    height: calc(100vh - 110px);
+  }
+  .wmr-chat-resize {
+    display: none !important;
   }
 }
 
@@ -151,10 +178,29 @@
   margin: 0;
 }
 
+.wmr-chat-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.wmr-chat-title,
+.wmr-chat-subtitle {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .wmr-chat-subtitle {
   font-size: 0.82rem;
   color: var(--chat-muted) !important;
   margin: 0;
+}
+
+.wmr-chat-actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .wmr-chat-icon-btn {

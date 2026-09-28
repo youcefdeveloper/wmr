@@ -13,7 +13,7 @@ import {
 // and open state are kept in sessionStorage for the tab.
 
 type Turn = { role: 'user' | 'assistant'; content: string }
-type Saved = { open: boolean; turns: Turn[] }
+type Saved = { open: boolean; expanded?: boolean; turns: Turn[] }
 
 const API = '/api/dashboard/assistant'
 const STORAGE_KEY = 'wmr-assistant'
@@ -91,6 +91,7 @@ const SendIcon = () => (
 
 const Assistant = () => {
   const [open, setOpen] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const [turns, setTurns] = useState<Turn[]>([])
   const [draft, setDraft] = useState('')
   const [pending, setPending] = useState(false)
@@ -103,13 +104,14 @@ const Assistant = () => {
   useEffect(() => {
     const saved = load()
     setOpen(saved.open)
+    setExpanded(saved.expanded === true)
     setTurns(saved.turns)
     setRestored(true)
   }, [])
 
   useEffect(() => {
-    if (restored) save({ open, turns })
-  }, [open, turns, restored])
+    if (restored) save({ open, expanded, turns })
+  }, [open, expanded, turns, restored])
 
   useEffect(() => {
     if (!open) return
@@ -189,7 +191,7 @@ const Assistant = () => {
       {open && (
         <section
           id="wmr-chat-panel"
-          className="wmr-chat-panel"
+          className={`wmr-chat-panel${expanded ? ' is-expanded' : ''}`}
           role="dialog"
           aria-label="Rates assistant"
         >
@@ -197,29 +199,41 @@ const Assistant = () => {
             <div className="wmr-chat-avatar" aria-hidden="true">
               <i className="bi bi-graph-up-arrow" />
             </div>
-            <div className="flex-grow-1 min-w-0">
+            <div className="wmr-chat-heading">
               <h2 className="wmr-chat-title fw-semibold">Rates Assistant</h2>
-              <p className="wmr-chat-subtitle">Answers from the weekly PMMS data</p>
+              <p className="wmr-chat-subtitle">Based on weekly PMMS data</p>
             </div>
-            <button
-              type="button"
-              className="wmr-chat-icon-btn"
-              onClick={reset}
-              disabled={pending || turns.length === 0}
-              title="New chat"
-              aria-label="New chat"
-            >
-              <i className="bi bi-arrow-counterclockwise" />
-            </button>
-            <button
-              type="button"
-              className="wmr-chat-icon-btn"
-              onClick={close}
-              title="Close"
-              aria-label="Close"
-            >
-              <i className="bi bi-x-lg" />
-            </button>
+            <div className="wmr-chat-actions">
+              <button
+                type="button"
+                className="wmr-chat-icon-btn"
+                onClick={reset}
+                disabled={pending || turns.length === 0}
+                title="New chat"
+                aria-label="New chat"
+              >
+                <i className="bi bi-arrow-counterclockwise" />
+              </button>
+              <button
+                type="button"
+                className="wmr-chat-icon-btn wmr-chat-resize"
+                onClick={() => setExpanded((e) => !e)}
+                title={expanded ? 'Minimize' : 'Maximize'}
+                aria-label={expanded ? 'Minimize' : 'Maximize'}
+                aria-pressed={expanded}
+              >
+                <i className={expanded ? 'bi bi-arrows-angle-contract' : 'bi bi-arrows-angle-expand'} />
+              </button>
+              <button
+                type="button"
+                className="wmr-chat-icon-btn"
+                onClick={close}
+                title="Close"
+                aria-label="Close"
+              >
+                <i className="bi bi-x-lg" />
+              </button>
+            </div>
           </div>
 
           <div ref={bodyRef} className="wmr-chat-body" aria-live="polite">
