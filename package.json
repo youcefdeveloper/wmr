@@ -19,7 +19,8 @@
     "push:test:vercel": "tsx --env-file=.env.vercel scripts/test-push.ts",
     "notify:subs": "tsx --env-file=.env.local scripts/notify-subscriptions.ts",
     "notify:subs:vercel": "tsx --env-file=.env.vercel scripts/notify-subscriptions.ts",
-    "env:sync": "./scripts/sync-vercel-env.sh"
+    "env:sync": "./scripts/sync-vercel-env.sh",
+    "agent:ask": "tsx --env-file=.env.local scripts/ask-agent.ts"
   },
   "dependencies": {
     "@astrojs/react": "^5.0.7",
@@ -36,6 +37,7 @@
     "exceljs": "^4.4.0",
     "lodash.debounce": "^4.0.8",
     "maxmind": "^5.0.7",
+    "openai": "^7.23.0",
     "pino": "^9.6.0",
     "postgres": "^3.4.9",
     "react": "^19.1.0",
