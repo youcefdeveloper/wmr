@@ -81,6 +81,8 @@
   z-index: 1060;
   width: 390px;
   height: min(620px, calc(100vh - 124px));
+  /* dvh tracks the visible height as mobile browser bars show and hide. */
+  height: min(620px, calc(100dvh - 124px));
   display: flex;
   flex-direction: column;
   background: var(--chat-bg);
@@ -88,6 +90,7 @@
   border-radius: 20px;
   box-shadow: var(--chat-shadow);
   overflow: hidden;
+  overscroll-behavior: contain;
   transform-origin: bottom right;
   animation: wmr-chat-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -101,6 +104,7 @@
 .wmr-chat-panel.is-expanded {
   width: min(820px, calc(100vw - 48px));
   height: calc(100vh - 124px);
+  height: calc(100dvh - 124px);
 }
 
 .wmr-chat-panel.is-expanded .wmr-chat-body {
@@ -124,16 +128,21 @@
     right: 16px;
     bottom: 16px;
   }
-  .wmr-chat-panel {
+  /* Pinned to the visible screen by its edges rather than a height, so the
+     header never slides under the browser's address bar. */
+  .wmr-chat-panel,
+  .wmr-chat-panel.is-expanded {
+    top: max(12px, env(safe-area-inset-top));
     right: 12px;
     left: 12px;
     bottom: 84px;
     width: auto;
-    height: calc(100vh - 110px);
+    height: auto;
   }
-  .wmr-chat-panel.is-expanded {
-    width: auto;
-    height: calc(100vh - 110px);
+  /* The window covers the page, so the page must not scroll behind it. */
+  html.wmr-chat-open,
+  html.wmr-chat-open body {
+    overflow: hidden;
   }
   .wmr-chat-resize {
     display: none !important;
@@ -237,6 +246,7 @@
   gap: 10px;
   scrollbar-width: thin;
   scrollbar-color: var(--chat-border) transparent;
+  overscroll-behavior: contain;
 }
 
 .wmr-chat-body::-webkit-scrollbar {
@@ -421,6 +431,7 @@
   max-height: 120px;
   overflow-y: auto;
   scrollbar-width: none;
+  overscroll-behavior: contain;
 }
 
 .wmr-chat-input::-webkit-scrollbar {
