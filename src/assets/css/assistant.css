@@ -238,6 +238,20 @@
   font-size: 1rem;
 }
 
+/* Bootstrap Icons sit on the text baseline (vertical-align: -.125em on
+   ::before), which drops them off-centre in the round buttons. */
+.wmr-chat-icon-btn i,
+.wmr-chat-avatar i {
+  display: block;
+  line-height: 1;
+}
+
+.wmr-chat-icon-btn i::before,
+.wmr-chat-avatar i::before {
+  display: block;
+  vertical-align: 0;
+}
+
 /* Messages */
 .wmr-chat-body {
   flex: 1;
